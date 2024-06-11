@@ -1,0 +1,88 @@
+Screen {
+  grid-columns: 1fr 3fr;
+  grid-size: 2;
+  height: 100vh;
+  layout: grid;
+}
+
+CardModal,
+DeckModal,
+MessageModal,
+HelpModal {
+  align: center middle;
+}
+
+.modal {
+  background: $surface;
+  border: solid $secondary;
+}
+
+.modal--card {
+  grid-columns: 1fr;
+  grid-size: 1 4;
+  height: 100%;
+  layout: grid;
+  width: 100%;
+}
+
+.modal--deck,
+.modal--message {
+  height: 12;
+}
+
+.modal--message > Container {
+  align: center middle;
+}
+
+.modal__options {
+  layout: grid;
+  grid-columns: auto 1fr;
+  grid-size: 2 1;
+  height: auto;
+}
+
+.modal__reversible {
+  layout: grid;
+  grid-columns: auto auto;
+  grid-size: 2 1;
+  grid-gutter: 1;
+}
+
+.label--reversible {
+  content-align: center middle;
+  height: 3;
+  width: auto;
+}
+
+.label--textarea,
+.label--name {
+  padding-left: 1;
+}
+
+.modal__textarea {
+  margin-bottom: 1;
+}
+
+.modal__input {
+  width: 100%;
+}
+
+.message {
+  text-align: center;
+}
+
+.submit {
+  margin: 1;
+  width: 100%;
+}
+
+.tree,
+.cards {
+  border-title-align: left;
+  border: solid $secondary;
+  height: 100vh;
+}
+
+.cards__table {
+  width: 100%;
+}

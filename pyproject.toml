@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "memotica"
+version = "0.1.0"
+description = ""
+authors = ["dnlzrgz <24715931+dnlzrgz@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+homepage = "https://github.com/dnlzrgz/memotica"
+repository = "https://github.com/dnlzrgz/memotica"
+documentation = "https://github.com/dnlzrgz/memotica"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+textual = {extras = ["syntax"], version = "^0.66.0"}
+sqlalchemy = "^2.0.30"
+click = "^8.1.7"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.7.1"
+commitizen = "^3.27.0"
+ruff = "^0.4.8"
+textual-dev = "^1.5.1"
+
+[tool.poetry.scripts]
+memotica="memotica.cli:run"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
