@@ -111,5 +111,4 @@ class AddCardModal(ModalScreen):
             deck_id=selected_deck.value,
         )
 
-        self.noti
         self.dismiss(card)

@@ -25,6 +25,7 @@ class MemoticaApp(App):
         Binding("ctrl+a", "add_card", "Add Card", show=True),
     ]
 
+    show_sidebar: reactive[bool] = reactive(True)
     selected_deck: reactive[str | None] = reactive(None)
 
     def __init__(self, session: Session, *args, **kwargs):
@@ -59,7 +60,12 @@ class MemoticaApp(App):
         self.cards = session.query(Card).join(Deck).all()
         cards_table.add_columns(*("Front", "Back", "Reversible", "Deck"))
         for card in self.cards:
-            cards_table.add_row(card.front, card.back, card.reversible, card.deck.name)
+            cards_table.add_row(
+                truncate_text(card.front),
+                truncate_text(card.back),
+                card.reversible,
+                card.deck.name,
+            )
 
         cards_table.loading = False
 
@@ -124,9 +130,21 @@ class MemoticaApp(App):
             self.cards = self.session.query(Card).join(Deck).all()
 
         for card in self.cards:
-            cards_table.add_row(card.front, card.back, card.reversible, card.deck.name)
+            cards_table.add_row(
+                truncate_text(card.front),
+                truncate_text(card.back),
+                card.reversible,
+                card.deck.name,
+            )
 
         cards_table.loading = False
+
+
+def truncate_text(text, max_length=20):
+    if len(text) > max_length:
+        return text[:max_length] + "..."
+
+    return text
 
 
 if __name__ == "__main__":
