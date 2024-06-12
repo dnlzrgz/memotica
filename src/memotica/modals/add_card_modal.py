@@ -5,8 +5,13 @@ from textual.containers import Container, VerticalScroll
 from textual.widgets import Button, Select, Static, Switch, TextArea
 from memotica.models import Card, Deck
 
+# TODO: Add validation:
+# TODO: cards needs a front content.
+# TODO: cards needs a back content.
+# TODO: cards needs a deck.
 
-class CardModal(ModalScreen):
+
+class AddCardModal(ModalScreen):
     """
     A modal screen to add/edit cards.
     """
@@ -21,16 +26,15 @@ class CardModal(ModalScreen):
     ]
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll(classes="modal modal--card"):
+        with VerticalScroll(classes="modal modal--add-card"):
             yield Container(
                 Container(
-                    Static("Reversible", classes="label label--reversible"),
-                    Switch(value=False, animate=False, classes="switch"),
+                    Static("Reversible", classes="label"),
+                    Switch(value=False, animate=False),
                     classes="modal__reversible",
                 ),
                 Select(
                     allow_blank=True,
-                    classes="modal__decks-select",
                     options=((deck.name, deck.id) for deck in self.decks),
                     prompt="Deck",
                     value=self.decks[0].id,
@@ -39,39 +43,73 @@ class CardModal(ModalScreen):
             )
 
             yield Container(
-                Static("Front", classes="label label--textarea"),
+                Static("Front"),
                 TextArea.code_editor(
                     language="markdown",
                     show_line_numbers=False,
-                    classes="modal__textarea modal__textarea--first",
                 ),
-                classes="modal__first",
+                classes="modal__front",
             )
 
             yield Container(
-                Static("Back", classes="label label--textarea"),
+                Static("Back"),
                 TextArea.code_editor(
                     language="markdown",
                     show_line_numbers=False,
-                    classes="modal__textarea modal__textarea--second",
                 ),
-                classes="modal__second",
+                classes="modal__back",
             )
 
-            yield Button(
-                label="Submit",
-                variant="success",
-                classes="submit submit--success",
+            yield Container(
+                Button(
+                    label="Submit",
+                    variant="success",
+                    classes="submit submit--success",
+                ),
+                classes="modal__buttons",
             )
 
     def action_quit(self) -> None:
         self.app.pop_screen()
 
+    def on_mount(self) -> None:
+        modal = self.query_one(".modal")
+        modal.border_title = "Add a new card"
+        modal.border_subtitle = "^q/esc to Close"
+
     def on_button_pressed(self) -> None:
+        front_textarea = self.query(TextArea)[0]
+        back_textarea = self.query(TextArea)[1]
+        selected_deck = self.query_one(Select)
+
+        if not front_textarea.text or not back_textarea.text:
+            self.notify(
+                "Both front and back content are required",
+                severity="error",
+                timeout=5,
+            )
+            if not front_textarea.text:
+                front_textarea.focus()
+            else:
+                back_textarea.focus()
+
+            return
+
+        if selected_deck.value == Select.BLANK:
+            self.notify(
+                "You need to select a deck!",
+                severity="error",
+                timeout=5,
+            )
+            selected_deck.focus()
+            return
+
         card = Card(
-            front=self.query(TextArea)[0].text,
-            back=self.query(TextArea)[1].text,
+            front=front_textarea.text,
+            back=back_textarea.text,
             reversible=self.query_one(Switch).value,
-            deck_id=self.query_one(Select).value,
+            deck_id=selected_deck.value,
         )
+
+        self.noti
         self.dismiss(card)

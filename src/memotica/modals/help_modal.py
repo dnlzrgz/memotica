@@ -15,12 +15,15 @@ class HelpModal(ModalScreen):
             markdown = f.read()
 
         with VerticalScroll(classes="modal modal--help"):
-            yield Static(" ".join(self.header_text), classes="modal__header")
-            with VerticalScroll(classes="help__content"):
+            yield Static(" ".join(self.header_text))
+            with VerticalScroll(id="content"):
                 yield Markdown(markdown=markdown)
 
     def on_mount(self) -> None:
-        self.body = self.query_one(".help__content")
+        self.body = self.query("#content")
+
+        modal = self.query_one(".modal")
+        modal.border_title = "Help"
 
     def on_key(self, event: events.Key) -> None:
         event.stop()

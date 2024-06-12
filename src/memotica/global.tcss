@@ -5,9 +5,8 @@ Screen {
   layout: grid;
 }
 
-CardModal,
-DeckModal,
-MessageModal,
+AddDeckModal,
+AddCardModal,
 HelpModal {
   align: center middle;
 }
@@ -15,30 +14,12 @@ HelpModal {
 .modal {
   background: $surface;
   border: solid $secondary;
-}
-
-.modal--card {
-  grid-columns: 1fr;
-  grid-size: 1 4;
-  height: 100%;
-  layout: grid;
-  width: 100%;
-}
-
-.modal--deck,
-.modal--message {
-  height: 12;
-}
-
-.modal--message > Container {
-  align: center middle;
-}
-
-.modal__options {
-  layout: grid;
-  grid-columns: auto 1fr;
-  grid-size: 2 1;
   height: auto;
+  width: auto;
+}
+
+.modal--add-deck {
+  height: 9;
 }
 
 .modal__reversible {
@@ -48,32 +29,33 @@ HelpModal {
   grid-gutter: 1;
 }
 
-.label--reversible {
+.modal__reversible Static {
   content-align: center middle;
   height: 3;
-  width: auto;
 }
 
-.label--textarea,
-.label--name {
+.modal__options {
+  layout: grid;
+  grid-columns: auto 1fr;
+  grid-size: 2 0;
+}
+
+.modal__front Static,
+.modal__back Static {
   padding-left: 1;
 }
 
-.modal__textarea {
+.modal__front,
+.modal__back {
   margin-bottom: 1;
 }
 
-.modal__input {
-  width: 100%;
-}
+.modal__front {}
 
-.message {
-  text-align: center;
-}
+.modal__back {}
 
-.submit {
-  margin: 1;
-  width: 100%;
+.modal__buttons {
+  align: center middle
 }
 
 .tree,

@@ -6,7 +6,7 @@ from textual.widgets import DataTable, Footer, Header, Tree
 from textual.reactive import reactive
 from memotica.db import engine, init_db
 from memotica.models import Card, Deck
-from memotica.modals import CardModal, DeckModal, HelpModal, MessageModal
+from memotica.modals import HelpModal, AddDeckModal, AddCardModal
 
 
 class MemoticaApp(App):
@@ -70,7 +70,7 @@ class MemoticaApp(App):
         self.push_screen(HelpModal())
 
     def action_add_deck(self) -> None:
-        self.push_screen(DeckModal(), self.action_add_deck_callback)
+        self.push_screen(AddDeckModal(self.decks), self.action_add_deck_callback)
 
     def action_add_deck_callback(self, result: Deck) -> None:
         self.session.add(result)
@@ -79,10 +79,14 @@ class MemoticaApp(App):
 
     def action_add_card(self) -> None:
         if len(self.decks) <= 0:
-            self.push_screen(MessageModal("First, you need to add a Deck!", False))
+            self.notify(
+                "You need to add a Deck first! Check the help if you need to.",
+                severity="error",
+                timeout=5,
+            )
             return
 
-        self.push_screen(CardModal(self.decks), self.action_add_card_callback)
+        self.push_screen(AddCardModal(self.decks), self.action_add_card_callback)
 
     def action_add_card_callback(self, result: Card) -> None:
         self.session.add(result)
