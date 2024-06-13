@@ -1,11 +1,12 @@
 Screen {
-  grid-columns: 1fr 3fr;
-  grid-size: 2;
-  height: 100vh;
-  layout: grid;
+  layout: horizontal;
+  height: auto;
+  width: auto;
 }
 
 AddDeckModal,
+DeleteDeckModal,
+EditDeckModal,
 AddCardModal,
 HelpModal {
   align: center middle;
@@ -15,11 +16,24 @@ HelpModal {
   background: $surface;
   border: solid $secondary;
   height: auto;
+  max-height: 30;
+  max-width: 90;
   width: auto;
 }
 
-.modal--add-deck {
+.modal--add-deck,
+.modal--edit-deck {
   height: 9;
+  width: 60;
+}
+
+.modal--delete-deck {
+  height: 12;
+  width: 60;
+}
+
+.modal--delete-deck Static {
+  padding: 1;
 }
 
 .modal__reversible {
@@ -35,9 +49,27 @@ HelpModal {
 }
 
 .modal__options {
+  layout: horizontal;
+}
+
+.modal__options--delete {
+  grid-columns: 1fr 1fr;
+  grid-gutter: 1;
+  grid-size: 2 1;
   layout: grid;
-  grid-columns: auto 1fr;
-  grid-size: 2 0;
+  padding: 1;
+}
+
+.modal__options--delete Button {
+  width: 100%;
+}
+
+.modal__reversible {
+  width: auto;
+}
+
+.modal__options Select {
+  width: 1fr;
 }
 
 .modal__front Static,
@@ -58,11 +90,19 @@ HelpModal {
   align: center middle
 }
 
-.tree,
+.hidden {
+  display: none;
+}
+
+DeckTree {
+  width: 40;
+}
+
+DeckTree,
 .cards {
   border-title-align: left;
   border: solid $secondary;
-  height: 100vh;
+  height: 100%;
 }
 
 .cards__table {
