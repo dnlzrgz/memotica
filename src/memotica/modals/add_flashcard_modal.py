@@ -3,17 +3,12 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.containers import Container, VerticalScroll
 from textual.widgets import Button, Select, Static, Switch, TextArea
-from memotica.models import Card, Deck
-
-# TODO: Add validation:
-# TODO: cards needs a front content.
-# TODO: cards needs a back content.
-# TODO: cards needs a deck.
+from memotica.models import Flashcard, Deck
 
 
-class AddCardModal(ModalScreen):
+class AddFlashcardModal(ModalScreen):
     """
-    A modal screen to add/edit cards.
+    A modal screen to add cards.
     """
 
     def __init__(self, decks: list[Deck] | None, *args, **kwargs):
@@ -47,6 +42,7 @@ class AddCardModal(ModalScreen):
                 TextArea.code_editor(
                     language="markdown",
                     show_line_numbers=False,
+                    tab_behavior="focus",
                 ),
                 classes="modal__front",
             )
@@ -56,6 +52,7 @@ class AddCardModal(ModalScreen):
                 TextArea.code_editor(
                     language="markdown",
                     show_line_numbers=False,
+                    tab_behavior="focus",
                 ),
                 classes="modal__back",
             )
@@ -104,11 +101,11 @@ class AddCardModal(ModalScreen):
             selected_deck.focus()
             return
 
-        card = Card(
+        flashcard = Flashcard(
             front=front_textarea.text,
             back=back_textarea.text,
             reversible=self.query_one(Switch).value,
             deck_id=selected_deck.value,
         )
 
-        self.dismiss(card)
+        self.dismiss(flashcard)

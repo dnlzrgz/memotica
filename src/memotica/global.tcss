@@ -7,7 +7,9 @@ Screen {
 AddDeckModal,
 DeleteDeckModal,
 EditDeckModal,
-AddCardModal,
+AddFlashcardModal,
+DeleteFlashcardModal,
+EditFlashcardModal,
 HelpModal {
   align: center middle;
 }
@@ -27,12 +29,14 @@ HelpModal {
   width: 60;
 }
 
-.modal--delete-deck {
+.modal--delete-deck,
+.modal--delete-flashcard {
   height: 12;
   width: 60;
 }
 
-.modal--delete-deck Static {
+.modal--delete-deck Static,
+.modal--delete-flashcard Static {
   padding: 1;
 }
 
@@ -99,12 +103,12 @@ DeckTree {
 }
 
 DeckTree,
-.cards {
+FlashcardsTable {
   border-title-align: left;
   border: solid $secondary;
   height: 100%;
 }
 
-.cards__table {
-  width: 100%;
+FlashcardsTable {
+  width: 1fr;
 }

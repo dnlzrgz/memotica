@@ -5,9 +5,9 @@ from textual.containers import Container, VerticalScroll
 from textual.widgets import Button, Static
 
 
-class DeleteDeckModal(ModalScreen):
+class DeleteFlashcardModal(ModalScreen):
     """
-    A modal screen to delete decks.
+    A modal screen to delete flashcards.
     """
 
     BINDINGS = [
@@ -15,13 +15,12 @@ class DeleteDeckModal(ModalScreen):
         Binding("escape", "quit", "Quit"),
     ]
 
-    def __init__(self, deck_name: str, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.deck_name = deck_name
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll(classes="modal modal--delete-deck"):
-            yield Static(f"Are you sure that you want to delete '{self.deck_name}'?")
+        with VerticalScroll(classes="modal modal--delete-flashcard"):
+            yield Static("Are you sure that you want to delete the selected flashcard?")
 
             yield Container(
                 Button(label="Cancel", variant="success"),
@@ -34,7 +33,7 @@ class DeleteDeckModal(ModalScreen):
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")
-        modal.border_title = f"Delete '{self.deck_name}'"
+        modal.border_title = "Delete"
         modal.border_subtitle = "^q/esc to cancel"
 
     def on_button_pressed(self, event: Button.Pressed) -> None:

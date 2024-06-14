@@ -13,7 +13,7 @@ class Deck(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
 
-    cards: Mapped[List["Card"]] = relationship(
+    flashcards: Mapped[List["Flashcard"]] = relationship(
         back_populates="deck",
         cascade="all, delete-orphan",
     )
@@ -22,8 +22,8 @@ class Deck(Base):
         return f"Deck(id={self.id!r}, name={self.name!r})"
 
 
-class Card(Base):
-    __tablename__ = "cards"
+class Flashcard(Base):
+    __tablename__ = "flashcards"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
@@ -32,7 +32,7 @@ class Card(Base):
     reversible: Mapped[bool] = mapped_column(Boolean(), default=True)
 
     deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id"))
-    deck: Mapped["Deck"] = relationship(back_populates="cards")
+    deck: Mapped["Deck"] = relationship(back_populates="flashcards")
 
     def __repr__(self) -> str:
-        return f"Card(id={self.id!r}, front={self.front!r}, back={self.back!r}, reversible={self.reversible!r})"
+        return f"Flashcard(id={self.id!r}, front={self.front!r}, back={self.back!r}, reversible={self.reversible!r})"
