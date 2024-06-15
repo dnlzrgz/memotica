@@ -12,6 +12,8 @@ class DeckTree(Tree):
     BINDINGS = [
         Binding("backspace", "delete", "Delete Deck"),
         Binding("ctrl+e", "edit", "Edit Deck"),
+        Binding("k", "cursor_up", "Cursor Up", show=False),
+        Binding("j", "cursor_down", "Cursor Down", show=False),
     ]
 
     selected_deck: reactive[str | None] = reactive(None)

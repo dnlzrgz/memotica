@@ -14,6 +14,8 @@ class FlashcardsTable(DataTable):
     BINDINGS = [
         Binding("backspace", "delete", "Delete Flashcard", priority=True),
         Binding("ctrl+e", "edit", "Edit Flashcard", priority=True),
+        Binding("k", "cursor_up", "Cursor Up", show=False),
+        Binding("j", "cursor_down", "Cursor Down", show=False),
     ]
 
     def on_mount(self) -> None:
