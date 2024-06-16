@@ -1,4 +1,5 @@
 from textwrap import shorten
+from datetime import datetime
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 from textual.app import App, ComposeResult
@@ -17,7 +18,8 @@ from memotica.modals import (
 )
 from memotica.deck_tree import DeckTree
 from memotica.flashcards_table import FlashcardsTable
-from memotica.models import Flashcard, Deck
+from memotica.models import Flashcard, Deck, Review
+from memotica.review_screen import ReviewScreen
 
 
 class MemoticaApp(App):
@@ -33,11 +35,13 @@ class MemoticaApp(App):
         Binding("ctrl+q", "quit", "Quit", show=True),
         Binding("ctrl+d", "toggle_dark", "Toggle Dark Mode", show=False),
         Binding("ctrl+b", "toggle_deck_tree", "Toggle Sidebar", show=False),
+        Binding("ctrl+s", "start_review", "Start Review", show=True),
         Binding("ctrl+n", "add_deck", "Add Deck", show=True),
         Binding("ctrl+a", "add_flashcard", "Add Flashcard", show=True),
     ]
 
     show_sidebar: reactive[bool] = reactive(True)
+    current_deck: reactive[str | None] = reactive(None)
 
     def __init__(self, session: Session, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -96,6 +100,7 @@ class MemoticaApp(App):
         self,
         message: DeckTree.DeckSelectedMessage,
     ) -> None:
+        self.current_deck = message.deck_name
         self.__reload_cards(message.deck_name)
 
     def on_flashcards_table_delete_message(
@@ -161,9 +166,9 @@ class MemoticaApp(App):
         deck_tree.can_focus = self.show_sidebar
 
         if self.show_sidebar:
-            deck_tree.remove_class("hidden")
+            deck_tree.remove_class("hidde")
         else:
-            deck_tree.add_class("hidden")
+            deck_tree.add_class("hidde")
 
     def action_add_deck(self) -> None:
         def callback(result: Deck) -> None:
@@ -183,11 +188,61 @@ class MemoticaApp(App):
             return
 
         def callback(result: Flashcard) -> None:
+            # Add flashcards
             self.session.add(result)
             self.session.commit()
+            self.session.refresh(result)
+
+            # Create review data
+            review_ftb = Review(flashcard_id=result.id, direction="ftb")
+            session.add(review_ftb)
+
+            if result.reversible:
+                review_btf = Review(flashcard_id=result.id, direction="btf")
+                session.add(review_btf)
+
+            session.commit()
+
             self.__reload_cards()
 
         self.push_screen(AddFlashcardModal(self.decks), callback)
+
+    def action_start_review(self) -> None:
+        if self.current_deck is None:
+            self.notify(
+                "You need to select a Deck first!",
+                severity="error",
+                timeout=5,
+            )
+            return
+
+        deck = self.session.query(Deck).filter_by(name=self.current_deck).one_or_none()
+        if deck is None:
+            self.notify(
+                f"Selected deck '{self.current_deck}' not found!",
+                severity="error",
+                timeout=5,
+            )
+            return
+
+        # TODO: count number of flashcards
+
+        reviews = (
+            self.session.query(Review)
+            .join(Flashcard)
+            .filter(Flashcard.deck_id == deck.id)
+            .filter(Review.next_review <= datetime.now())
+            .order_by(Review.next_review)
+            .all()
+        )
+
+        self.push_screen(
+            ReviewScreen(
+                session=self.session,
+                reviews=reviews,
+                name="review",
+            )
+        )
 
     def __reload_decks(self) -> None:
         deck_tree = self.query_one(DeckTree)
@@ -208,8 +263,8 @@ class MemoticaApp(App):
 
         for flashcard in self.flashcards:
             flashcards_table.add_row(
-                shorten(flashcard.front, width=20, placeholder="..."),
-                shorten(flashcard.back, width=20, placeholder="..."),
+                shorten(flashcard.front, width=40, placeholder="..."),
+                shorten(flashcard.back, width=40, placeholder="..."),
                 flashcard.reversible,
                 flashcard.deck.name,
                 key=f"{flashcard.id}",

@@ -86,16 +86,8 @@ HelpModal {
   margin-bottom: 1;
 }
 
-.modal__front {}
-
-.modal__back {}
-
 .modal__buttons {
   align: center middle
-}
-
-.hidden {
-  display: none;
 }
 
 DeckTree {
@@ -111,4 +103,24 @@ FlashcardsTable {
 
 FlashcardsTable {
   width: 1fr;
+}
+
+.review__screen {
+  align: center middle;
+}
+
+.review__screen__question,
+.review__screen__front,
+.review__screen__back {
+  border: solid $secondary;
+  padding: 1;
+}
+
+.review__screen__controls {
+  layout: horizontal;
+  align: center middle;
+}
+
+.hide {
+  display: none;
 }
