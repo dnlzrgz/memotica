@@ -225,8 +225,6 @@ class MemoticaApp(App):
             )
             return
 
-        # TODO: count number of flashcards
-
         reviews = (
             self.session.query(Review)
             .join(Flashcard)
@@ -235,6 +233,14 @@ class MemoticaApp(App):
             .order_by(Review.next_review)
             .all()
         )
+
+        if not reviews:
+            self.notify(
+                "You don't have flashcards to review!",
+                severity="error",
+                timeout=5,
+            )
+            return
 
         self.push_screen(
             ReviewScreen(

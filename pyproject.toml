@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "memotica"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["dnlzrgz <24715931+dnlzrgz@users.noreply.github.com>"]
 license = "MIT"
