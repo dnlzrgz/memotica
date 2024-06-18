@@ -1,6 +1,6 @@
 from textwrap import shorten
 from datetime import datetime
-from sqlalchemy import update
+from sqlalchemy import update, delete
 from sqlalchemy.orm import Session
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -57,6 +57,10 @@ class MemoticaApp(App):
         self.__reload_decks()
         self.__reload_cards()
 
+    def on_quit(self) -> None:
+        self.session.flush()
+        self.app.exit()
+
     def on_deck_tree_delete_message(self, message: DeckTree.DeleteMessage) -> None:
         deck_in_db = (
             self.session.query(Deck)
@@ -69,6 +73,7 @@ class MemoticaApp(App):
                 self.session.delete(deck_in_db)
                 self.session.commit()
                 self.__reload_decks()
+                self.__reload_cards()
 
         if deck_in_db is not None:
             self.push_screen(DeleteDeckModal(message.deck_name), callback)
@@ -122,13 +127,13 @@ class MemoticaApp(App):
         self,
         message: FlashcardsTable.EditMessage,
     ) -> None:
-        flashcard_in_db = self.session.get(Flashcard, message.row_key)
+        flashcard_id = message.row_key
 
         def callback(result: Flashcard) -> None:
             if result:
                 stmt = (
                     update(Flashcard)
-                    .where(Flashcard.id == message.row_key)
+                    .where(Flashcard.id == flashcard_id)
                     .values(
                         reversible=result.reversible,
                         front=result.front,
@@ -137,9 +142,24 @@ class MemoticaApp(App):
                         last_updated_at=datetime.now(),
                     )
                 )
+                self.session.execute(stmt)
 
-                session.execute(stmt)
-                session.commit()
+                if not result.reversible:
+                    stmt = (
+                        delete(Review)
+                        .where(Review.flashcard_id == flashcard_id)
+                        .where(Review.direction == "btf")
+                    )
+                    self.session.execute(stmt)
+                else:
+                    self.session.add(
+                        Review(
+                            flashcard_id=message.row_key,
+                            direction="btf",
+                        )
+                    )
+
+                self.session.commit()
 
                 self.notify(
                     "Flashcard updated",
@@ -149,7 +169,12 @@ class MemoticaApp(App):
 
                 self.__reload_cards()
 
-        if flashcard_in_db is not None:
+        flashcard_in_db = (
+            self.session.query(Flashcard)
+            .where(Flashcard.id == flashcard_id)
+            .one_or_none()
+        )
+        if flashcard_in_db:
             self.push_screen(EditFlashcardModal(flashcard_in_db, self.decks), callback)
         else:
             self.notify(

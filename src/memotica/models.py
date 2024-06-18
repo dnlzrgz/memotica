@@ -32,8 +32,8 @@ class Flashcard(Base):
     back: Mapped[str]
     reversible: Mapped[bool] = mapped_column(Boolean(), default=True)
 
-    created_at: Mapped[datetime] = mapped_column(Date, default=datetime.now())
-    last_updated_at: Mapped[datetime] = mapped_column(Date, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
 
     deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id"))
     deck: Mapped["Deck"] = relationship(back_populates="flashcards")
@@ -58,8 +58,8 @@ class Review(Base):
     next_review: Mapped[date] = mapped_column(Date, default=datetime.now().date())
     direction: Mapped[str] = mapped_column(String, default="ftb")
 
-    created_at: Mapped[datetime] = mapped_column(Date, default=datetime.now())
-    last_updated_at: Mapped[datetime] = mapped_column(Date, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
 
     flashcard_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id"))
     flashcard: Mapped["Flashcard"] = relationship(back_populates="reviews")
