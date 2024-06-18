@@ -29,7 +29,7 @@ class DeckTree(Tree):
         self.guide_depth = 3
         self.root.expand()
 
-        if decks is None:
+        if not decks:
             self.loading = False
             return
 
@@ -40,7 +40,11 @@ class DeckTree(Tree):
         self.loading = False
 
     def on_tree_node_selected(self, selectedNode: Tree.NodeSelected) -> None:
-        self.selected_deck = f"{selectedNode.node.label}"
+        selected_deck = f"{selectedNode.node.label}"
+        if selected_deck == "*":
+            return
+
+        self.selected_deck = selected_deck
         self.post_message(self.DeckSelectedMessage(self.selected_deck))
 
     def action_edit(self) -> None:

@@ -134,6 +134,7 @@ class MemoticaApp(App):
                         front=result.front,
                         back=result.back,
                         deck_id=result.deck_id,
+                        last_updated_at=datetime.now(),
                     )
                 )
 
@@ -229,14 +230,14 @@ class MemoticaApp(App):
             self.session.query(Review)
             .join(Flashcard)
             .filter(Flashcard.deck_id == deck.id)
-            .filter(Review.next_review <= datetime.now())
+            .filter(Review.next_review <= datetime.now().date())
             .order_by(Review.next_review)
             .all()
         )
 
         if not reviews:
             self.notify(
-                "You don't have flashcards to review!",
+                "Great job! You've reviewed all your flashcards for now.",
                 severity="error",
                 timeout=5,
             )
