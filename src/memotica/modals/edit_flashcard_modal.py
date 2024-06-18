@@ -77,6 +77,10 @@ class EditFlashcardModal(ModalScreen):
         modal.border_title = "Edit card"
         modal.border_subtitle = "^q/esc to Close"
 
+        textareas = self.query(TextArea)
+        for textarea in textareas:
+            textarea.theme = "monokai" if self.app.dark else "github_light"
+
     def on_button_pressed(self) -> None:
         front_textarea = self.query(TextArea)[0]
         back_textarea = self.query(TextArea)[1]

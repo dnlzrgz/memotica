@@ -1,12 +1,13 @@
 from textwrap import shorten
 from datetime import datetime
-from sqlalchemy import update, delete
+from sqlalchemy import create_engine, update, delete
 from sqlalchemy.orm import Session
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import Footer, Header
-from memotica.db import engine, init_db
+from memotica.config import Config
+from memotica.db import init_db
 from memotica.modals import (
     AddDeckModal,
     EditDeckModal,
@@ -87,8 +88,8 @@ class MemoticaApp(App):
                     .values(name=result)
                 )
 
-                session.execute(stmt)
-                session.commit()
+                self.session.execute(stmt)
+                self.session.commit()
 
                 self.notify(
                     f"Updated deck '{message.deck_name}' to '{result}'",
@@ -306,7 +307,12 @@ class MemoticaApp(App):
 
 
 if __name__ == "__main__":
-    init_db()
+    config = Config()
+    engine = create_engine(
+        f"{config.sqlite_url}", connect_args={"check_same_thread": False}
+    )
+    init_db(engine)
+
     with Session(engine) as session:
         app = MemoticaApp(session)
         app.run()

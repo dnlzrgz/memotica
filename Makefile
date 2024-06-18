@@ -9,9 +9,13 @@ format:
 	ruff check . --fix
 	@echo "✨ Format complete!"
 
+run:
+	@echo "🚀 Starting development..."
+	@export ENVIRONMENT=development && poetry run memotica
+
 dev:
 	@echo "🚀 Starting development..."
-	textual run --dev src/memotica/tui.py
+	@export ENVIRONMENT=development && textual run src/memotica/tui.py
 
 console:
 	@echo "🚀 Starting development console..."

@@ -1,1 +1,3 @@
-# memotica - An Anki-like application for the terminal
+# memotica
+
+An easy, fast, and minimalist space repition application for the terminal

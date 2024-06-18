@@ -3,19 +3,16 @@ from textual import events
 from textual.app import ComposeResult
 from textual.screen import ModalScreen
 from textual.containers import VerticalScroll
-from textual.widgets import Static, Markdown
+from textual.widgets import Markdown
 
 
 class HelpModal(ModalScreen):
-    header_text = """memotica help:""".split()
-
     def compose(self) -> ComposeResult:
         markdown_path = Path(__file__).parent / "help_modal.md"
         with open(markdown_path, "r") as f:
             markdown = f.read()
 
         with VerticalScroll(classes="modal modal--help"):
-            yield Static(" ".join(self.header_text))
             with VerticalScroll(id="content"):
                 yield Markdown(markdown=markdown)
 
