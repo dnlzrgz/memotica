@@ -308,9 +308,7 @@ class MemoticaApp(App):
 
 if __name__ == "__main__":
     config = Config()
-    engine = create_engine(
-        f"{config.sqlite_url}", connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(f"{config.sqlite_url}")
     init_db(engine)
 
     with Session(engine) as session:

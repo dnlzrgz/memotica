@@ -1,18 +1,23 @@
+from datetime import datetime
 import os
 import zipfile
-from datetime import datetime
 import click
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from memotica.config import Config
 from memotica.db import init_db
 from memotica.tui import MemoticaApp
-from memotica.config import Config
 
 
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx) -> None:
+    """
+    memotica is an easy, fast and minimalist application for your terminal that allows you
+    to learn using space repetition.
+    """
+
     ctx.ensure_object(dict)
 
     config = Config()
@@ -47,10 +52,15 @@ def run(ctx):
         file_okay=False,
         dir_okay=True,
     ),
+    help="Path to the directory where the export file will be saved. Defaults to the current directory.",
 )
 def export(ctx, path):
     """
     Exports your memotica data.
+
+    This command exports your memotica data (decks, flashcards, and reviews) into
+    a ZIP file containing a CSV for each table. The ZIP file is saved in the
+    specified directory.
     """
 
     engine = ctx.obj["engine"]
