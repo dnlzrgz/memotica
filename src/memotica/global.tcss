@@ -40,6 +40,13 @@ HelpModal {
   padding: 1;
 }
 
+.modal--help {
+  height: 1fr;
+  max-height: 12;
+  max-width: 60;
+  width: 1fr;
+}
+
 .modal__reversible {
   layout: grid;
   grid-columns: auto auto;
