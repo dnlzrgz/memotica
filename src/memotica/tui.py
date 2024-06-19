@@ -222,14 +222,13 @@ class MemoticaApp(App):
 
             # Create review data
             review_ftb = Review(flashcard_id=result.id, direction="ftb")
-            session.add(review_ftb)
+            self.session.add(review_ftb)
 
             if result.reversible:
                 review_btf = Review(flashcard_id=result.id, direction="btf")
-                session.add(review_btf)
+                self.session.add(review_btf)
 
-            session.commit()
-
+            self.session.commit()
             self.__reload_cards()
 
         self.push_screen(AddFlashcardModal(self.decks), callback)
