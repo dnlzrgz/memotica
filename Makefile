@@ -15,7 +15,7 @@ run:
 
 dev:
 	@echo "🚀 Starting development..."
-	@export ENVIRONMENT=development && textual run src/memotica/tui.py
+	@export ENVIRONMENT=development && textual run src/memotica/tui.py --dev
 
 console:
 	@echo "🚀 Starting development console..."

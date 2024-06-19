@@ -193,9 +193,9 @@ class MemoticaApp(App):
         deck_tree.can_focus = self.show_sidebar
 
         if self.show_sidebar:
-            deck_tree.remove_class("hidde")
+            deck_tree.remove_class("hide")
         else:
-            deck_tree.add_class("hidde")
+            deck_tree.add_class("hide")
 
     def action_add_deck(self) -> None:
         def callback(result: Deck) -> None:
