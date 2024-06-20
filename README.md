@@ -65,7 +65,7 @@ memotica --help
 Once the TUI is displayed, you can:
 
 - **Display the help message** by pressing `F1`.
-- **Add a new deck** by pressing `ctrl +  n`.
+- **Add a new deck** by pressing `ctrl+n`.
 - **Add flashcards** with `ctrl+a`.
 
 After you've added flashcards, select a deck in the deck tree and press `ctrl+s` to begin the review process.
