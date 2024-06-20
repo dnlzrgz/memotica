@@ -22,6 +22,12 @@ class FlashcardsTable(DataTable):
         self.add_columns("Front", "Back", "Reversible", "Deck")
         self.border_title = "Flashcards"
 
+    def on_focus(self) -> None:
+        self.add_class("focused")
+
+    def on_blur(self) -> None:
+        self.remove_class("focused")
+
     def action_edit(self) -> None:
         row_key, _ = self.coordinate_to_cell_key(self.cursor_coordinate)
         self.post_message(self.EditMessage(row_key.value))

@@ -47,6 +47,12 @@ class DeckTree(Tree):
         self.selected_deck = selected_deck
         self.post_message(self.DeckSelectedMessage(self.selected_deck))
 
+    def on_focus(self) -> None:
+        self.add_class("focused")
+
+    def on_blur(self) -> None:
+        self.remove_class("focused")
+
     def action_edit(self) -> None:
         if self.selected_deck is None:
             return
