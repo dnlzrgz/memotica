@@ -23,7 +23,7 @@ class DeleteFlashcardModal(ModalScreen):
             yield Static("Are you sure that you want to delete the selected flashcard?")
 
             yield Container(
-                Button(label="Cancel", variant="success"),
+                Button(label="Cancel", variant="success").focus(),
                 Button(label="Delete", variant="error"),
                 classes="modal__options modal__options--delete",
             )

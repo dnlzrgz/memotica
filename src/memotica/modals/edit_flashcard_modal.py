@@ -39,25 +39,27 @@ class EditFlashcardModal(ModalScreen):
             )
 
             yield Container(
-                Static("Front"),
-                TextArea.code_editor(
-                    language="markdown",
-                    show_line_numbers=False,
-                    text=self.flashcard.front,
-                    tab_behavior="focus",
+                Container(
+                    Static("Front"),
+                    TextArea.code_editor(
+                        language="markdown",
+                        show_line_numbers=False,
+                        text=self.flashcard.front,
+                        tab_behavior="focus",
+                    ).focus(),
+                    classes="modal__front",
                 ),
-                classes="modal__front",
-            )
-
-            yield Container(
-                Static("Back"),
-                TextArea.code_editor(
-                    language="markdown",
-                    show_line_numbers=False,
-                    text=self.flashcard.back,
-                    tab_behavior="focus",
+                Container(
+                    Static("Back"),
+                    TextArea.code_editor(
+                        language="markdown",
+                        show_line_numbers=False,
+                        text=self.flashcard.back,
+                        tab_behavior="focus",
+                    ),
+                    classes="modal__back",
                 ),
-                classes="modal__back",
+                classes="modal__review",
             )
 
             yield Container(
