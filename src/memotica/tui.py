@@ -256,7 +256,7 @@ class MemoticaApp(App):
             .join(Flashcard)
             .filter(Flashcard.deck_id == deck.id)
             .filter(Review.next_review <= datetime.now().date())
-            .order_by(Review.next_review)
+            .order_by(Review.next_review, Review.ef, Review.interval)
             .all()
         )
 
