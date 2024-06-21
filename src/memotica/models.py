@@ -16,7 +16,7 @@ class Deck(Base):
 
     flashcards: Mapped[List["Flashcard"]] = relationship(
         back_populates="deck",
-        cascade="all, delete-orphan",
+        cascade="all,delete",
     )
 
     def __repr__(self) -> str:
@@ -40,7 +40,7 @@ class Flashcard(Base):
 
     reviews: Mapped[List["Review"]] = relationship(
         back_populates="flashcard",
-        cascade="all, delete-orphan",
+        cascade="all,delete",
     )
 
     def __repr__(self) -> str:

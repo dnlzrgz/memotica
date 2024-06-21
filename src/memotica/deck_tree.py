@@ -16,7 +16,7 @@ class DeckTree(Tree):
         Binding("j", "cursor_down", "Cursor Down", show=False),
     ]
 
-    selected_deck: reactive[str | None] = reactive(None)
+    current_node_label: reactive[str | None] = reactive(None)
 
     def on_mount(self) -> None:
         self.loading = True
@@ -25,7 +25,7 @@ class DeckTree(Tree):
     def reload_decks(self, decks: list[Deck] | None = None) -> None:
         self.loading = True
         self.clear()
-        self.selected_deck = None
+        self.current_node_label = None
         self.guide_depth = 3
         self.root.expand()
 
@@ -40,12 +40,12 @@ class DeckTree(Tree):
         self.loading = False
 
     def on_tree_node_selected(self, selectedNode: Tree.NodeSelected) -> None:
-        selected_deck = f"{selectedNode.node.label}"
-        if selected_deck == "*":
+        node_label = f"{selectedNode.node.label}"
+        if node_label == "*":
             return
 
-        self.selected_deck = selected_deck
-        self.post_message(self.DeckSelectedMessage(self.selected_deck))
+        self.current_node_label = node_label
+        self.post_message(self.DeckSelectedMessage(self.current_node_label))
 
     def on_focus(self) -> None:
         self.add_class("focused")
@@ -54,16 +54,16 @@ class DeckTree(Tree):
         self.remove_class("focused")
 
     def action_edit(self) -> None:
-        if self.selected_deck is None:
+        if self.current_node_label is None:
             return
 
-        self.post_message(self.EditMessage(self.selected_deck))
+        self.post_message(self.EditMessage(self.current_node_label))
 
     def action_delete(self) -> None:
-        if self.selected_deck is None:
+        if self.current_node_label is None:
             return
 
-        self.post_message(self.DeleteMessage(self.selected_deck))
+        self.post_message(self.DeleteMessage(self.current_node_label))
 
     class DeleteMessage(Message):
         def __init__(self, deck_name: str) -> None:

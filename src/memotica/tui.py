@@ -1,6 +1,6 @@
 from textwrap import shorten
 from datetime import datetime
-from sqlalchemy import create_engine, update, delete
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -20,6 +20,7 @@ from memotica.modals import (
 from memotica.deck_tree import DeckTree
 from memotica.flashcards_table import FlashcardsTable
 from memotica.models import Flashcard, Deck, Review
+from memotica.repositories import FlashcardRepository, DeckRepository, ReviewRepository
 from memotica.review_screen import ReviewScreen
 
 
@@ -42,11 +43,15 @@ class MemoticaApp(App):
     ]
 
     show_sidebar: reactive[bool] = reactive(True)
-    current_deck: reactive[str | None] = reactive(None)
+    deck_id: reactive[int | None] = reactive(None)
 
     def __init__(self, session: Session, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.session = session
+
+        self.flashcards_repository = FlashcardRepository(session)
+        self.decks_repository = DeckRepository(session)
+        self.reviews_repository = ReviewRepository(session)
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -62,37 +67,24 @@ class MemoticaApp(App):
         self.session.flush()
         self.app.exit()
 
-    def on_deck_tree_delete_message(self, message: DeckTree.DeleteMessage) -> None:
-        deck_in_db = (
-            self.session.query(Deck)
-            .filter(Deck.name == message.deck_name)
-            .one_or_none()
-        )
+    def on_deck_tree_delete_message(self, _: DeckTree.DeleteMessage) -> None:
+        deck = self.decks_repository.get(self.deck_id)
 
         def callback(result: bool) -> None:
             if result:
-                self.session.delete(deck_in_db)
-                self.session.commit()
+                self.decks_repository.delete(deck.id)
                 self.__reload_decks()
                 self.__reload_cards()
 
-        if deck_in_db is not None:
-            self.push_screen(DeleteDeckModal(message.deck_name), callback)
+        self.push_screen(DeleteDeckModal(deck.name), callback)
 
     def on_deck_tree_edit_message(self, message: DeckTree.EditMessage) -> None:
         def callback(result: str) -> None:
             if result:
-                stmt = (
-                    update(Deck)
-                    .where(Deck.name == message.deck_name)
-                    .values(name=result)
-                )
-
-                self.session.execute(stmt)
-                self.session.commit()
+                self.decks_repository.update(self.deck_id, name=message.deck_name)
 
                 self.notify(
-                    f"Updated deck '{message.deck_name}' to '{result}'",
+                    "Deck updated!",
                     severity="information",
                     timeout=5,
                 )
@@ -106,61 +98,51 @@ class MemoticaApp(App):
         self,
         message: DeckTree.DeckSelectedMessage,
     ) -> None:
-        self.current_deck = message.deck_name
-        self.__reload_cards(message.deck_name)
+        deck = self.decks_repository.get_by_name(message.deck_name)
+        if deck:
+            self.deck_id = deck.id
+            self.__reload_cards()
 
     def on_flashcards_table_delete_message(
         self,
         message: FlashcardsTable.DeleteMessage,
     ) -> None:
-        flashcard_in_db = self.session.get(Flashcard, message.row_key)
+        flashcard = self.flashcards_repository.get(int(message.row_key))
 
         def callback(result: bool) -> None:
             if result:
-                self.session.delete(flashcard_in_db)
-                self.session.commit()
+                self.flashcards_repository.delete(flashcard.id)
                 self.__reload_cards()
 
-        if flashcard_in_db is not None:
-            self.push_screen(DeleteFlashcardModal(), callback)
+        self.push_screen(DeleteFlashcardModal(), callback)
 
     def on_flashcards_table_edit_message(
         self,
         message: FlashcardsTable.EditMessage,
     ) -> None:
-        flashcard_id = message.row_key
+        flashcard_id = int(message.row_key)
 
         def callback(result: Flashcard) -> None:
             if result:
-                stmt = (
-                    update(Flashcard)
-                    .where(Flashcard.id == flashcard_id)
-                    .values(
-                        reversible=result.reversible,
-                        front=result.front,
-                        back=result.back,
-                        deck_id=result.deck_id,
-                        last_updated_at=datetime.now(),
-                    )
+                self.flashcards_repository.update(
+                    flashcard_id,
+                    reversible=result.reversible,
+                    front=result.front,
+                    back=result.back,
+                    deck_id=result.deck_id,
+                    last_updated_at=datetime.now(),
                 )
-                self.session.execute(stmt)
 
-                if not result.reversible:
-                    stmt = (
-                        delete(Review)
-                        .where(Review.flashcard_id == flashcard_id)
-                        .where(Review.direction == "btf")
-                    )
-                    self.session.execute(stmt)
-                else:
-                    self.session.add(
-                        Review(
-                            flashcard_id=message.row_key,
-                            direction="btf",
-                        )
-                    )
+                reviews = self.reviews_repository.get_by_flashcard(flashcard_id)
+                for review in reviews:
+                    self.reviews_repository.delete(review.id)
 
-                self.session.commit()
+                self.reviews_repository.add(Review(flashcard_id=flashcard_id))
+
+                if result.reversible:
+                    self.reviews_repository.add(
+                        Review(flashcard_id=flashcard_id, direction="btf")
+                    )
 
                 self.notify(
                     "Flashcard updated",
@@ -170,19 +152,9 @@ class MemoticaApp(App):
 
                 self.__reload_cards()
 
-        flashcard_in_db = (
-            self.session.query(Flashcard)
-            .where(Flashcard.id == flashcard_id)
-            .one_or_none()
-        )
-        if flashcard_in_db:
-            self.push_screen(EditFlashcardModal(flashcard_in_db, self.decks), callback)
-        else:
-            self.notify(
-                "Oops! This flashcard doesn't seem to be in the database.",
-                severity="error",
-                timeout=5,
-            )
+        flashcard = self.flashcards_repository.get(flashcard_id)
+        assert flashcard is not None
+        self.push_screen(EditFlashcardModal(flashcard, self.decks), callback)
 
     def action_show_help_screen(self) -> None:
         self.push_screen(HelpModal())
@@ -199,8 +171,7 @@ class MemoticaApp(App):
 
     def action_add_deck(self) -> None:
         def callback(result: Deck) -> None:
-            self.session.add(result)
-            self.session.commit()
+            self.decks_repository.add(result)
             self.__reload_decks()
 
         self.push_screen(AddDeckModal(self.decks), callback)
@@ -215,26 +186,20 @@ class MemoticaApp(App):
             return
 
         def callback(result: Flashcard) -> None:
-            # Add flashcards
-            self.session.add(result)
-            self.session.commit()
-            self.session.refresh(result)
-
-            # Create review data
-            review_ftb = Review(flashcard_id=result.id, direction="ftb")
-            self.session.add(review_ftb)
+            self.flashcards_repository.add(result)
+            self.reviews_repository.add(Review(flashcard_id=result.id))
 
             if result.reversible:
-                review_btf = Review(flashcard_id=result.id, direction="btf")
-                self.session.add(review_btf)
+                self.reviews_repository.add(
+                    Review(flashcard_id=result.id, direction="btf")
+                )
 
-            self.session.commit()
             self.__reload_cards()
 
         self.push_screen(AddFlashcardModal(self.decks), callback)
 
     def action_start_review(self) -> None:
-        if self.current_deck is None:
+        if not self.deck_id:
             self.notify(
                 "You need to select a Deck first!",
                 severity="error",
@@ -242,28 +207,12 @@ class MemoticaApp(App):
             )
             return
 
-        deck = self.session.query(Deck).filter_by(name=self.current_deck).one_or_none()
-        if deck is None:
-            self.notify(
-                f"Selected deck '{self.current_deck}' not found!",
-                severity="error",
-                timeout=5,
-            )
-            return
-
-        reviews = (
-            self.session.query(Review)
-            .join(Flashcard)
-            .filter(Flashcard.deck_id == deck.id)
-            .filter(Review.next_review <= datetime.now().date())
-            .order_by(Review.next_review, Review.ef, Review.interval)
-            .all()
-        )
+        reviews = self.reviews_repository.get_pending(self.deck_id)
 
         if not reviews:
             self.notify(
                 "Great job! You've reviewed all your flashcards for now.",
-                severity="error",
+                severity="information",
                 timeout=5,
             )
             return
@@ -271,27 +220,25 @@ class MemoticaApp(App):
         self.push_screen(
             ReviewScreen(
                 session=self.session,
-                reviews=reviews,
+                deck_id=self.deck_id,
                 name="review",
             )
         )
 
     def __reload_decks(self) -> None:
         deck_tree = self.query_one(DeckTree)
-        self.decks = self.session.query(Deck).all()
+        self.decks = self.decks_repository.get_all()
         deck_tree.reload_decks(self.decks)
 
-    def __reload_cards(self, deck: str | None = None) -> None:
+    def __reload_cards(self) -> None:
         flashcards_table = self.query_one(FlashcardsTable)
         flashcards_table.loading = True
         flashcards_table.clear()
 
-        if deck:
-            self.flashcards = (
-                self.session.query(Flashcard).join(Deck).filter(Deck.name == deck).all()
-            )
+        if self.deck_id:
+            self.flashcards = self.flashcards_repository.get_by_deck(self.deck_id)
         else:
-            self.flashcards = self.session.query(Flashcard).join(Deck).all()
+            self.flashcards = self.flashcards_repository.get_all()
 
         for flashcard in self.flashcards:
             flashcards_table.add_row(

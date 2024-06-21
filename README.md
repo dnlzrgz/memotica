@@ -25,7 +25,7 @@ memotica is nearly ready for use, but I there are some features that I would lik
 
 ## Motivation
 
-Recently, I began to study German and a bit of Japanese. At the same time I was also playing with the idea of playing a bit more with [textual](https://textual.textualize.io/). After encountering some issues with the Anki application on Linux, I decided that it would be a great idea to create a similar application more tailored for my needs and usage.
+Recently, I began to study German and a bit of Japanese. At the same time I was also thinking of playing a bit more with [textual](https://textual.textualize.io/). After encountering some issues with the Anki application on Linux, I decided that it would be a great idea to create a similar application more tailored for my needs and usage.
 
 ## Screenshots
 

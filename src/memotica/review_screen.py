@@ -1,6 +1,5 @@
 from collections import deque
 from datetime import datetime, timedelta
-from sqlalchemy import update
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -8,6 +7,7 @@ from textual.containers import Container
 from textual.reactive import reactive
 from textual.screen import Screen
 from textual.widgets import Footer, Markdown, Button
+from memotica.repositories import ReviewRepository
 from memotica.models import Review
 from memotica.sm2 import sm2
 
@@ -28,10 +28,10 @@ class ReviewScreen(Screen):
     front_content: reactive[str] = reactive("", recompose=True)
     back_content: reactive[str] = reactive("", recompose=True)
 
-    def __init__(self, session: Session, reviews: list[Review], *args, **kwargs):
+    def __init__(self, session: Session, deck_id: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.session = session
-
+        self.reviews_repository = ReviewRepository(session)
+        reviews = self.reviews_repository.get_by_deck(deck_id)
         self.review_queue = deque(reviews)
         self.current_review = self.review_queue.popleft()
 
@@ -49,7 +49,7 @@ class ReviewScreen(Screen):
                 classes="review__screen__question",
             ),
             Container(
-                Button("Show", variant="primary"),
+                Button("Show", variant="primary", id="show"),
                 classes="review__screen__controls",
             ),
             classes="review__screen review__screen--question",
@@ -129,28 +129,22 @@ class ReviewScreen(Screen):
             q,
         )
 
-        today = datetime.now().date()
+        now = datetime.now()
+        today = now.date()
         next_review = today + timedelta(days=i)
 
-        stmt = (
-            update(Review)
-            .where(Review.id == self.current_review.id)
-            .values(
-                repetitions=n,
-                ef=ef,
-                interval=i,
-                next_review=next_review,
-                last_updated_at=datetime.now(),
-            )
+        self.reviews_repository.update(
+            self.current_review.id,
+            repetitions=n,
+            ef=ef,
+            interval=i,
+            next_review=next_review,
+            last_updated_at=now,
         )
 
-        self.session.execute(stmt)
-        self.session.commit()
-
-        self.current_review.repetitions = n
-        self.current_review.ef = ef
-        self.current_review.interval = i
-        self.current_review.next_review = next_review
-
         if next_review <= today or q == 0:
+            self.current_review.repetitions = n
+            self.current_review.ef = ef
+            self.current_review.interval = i
+            self.current_review.next_review = next_review
             self.review_queue.append(self.current_review)
