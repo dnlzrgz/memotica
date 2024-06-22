@@ -34,6 +34,7 @@ class MemoticaApp(App):
 
     BINDINGS = [
         Binding("f1", "show_help_screen", "Help", show=True),
+        Binding("f5", "refresh", "Refresh data", show=False),
         Binding("ctrl+q", "quit", "Quit", show=True),
         Binding("ctrl+d", "toggle_dark", "Toggle Dark Mode", show=False),
         Binding("ctrl+b", "toggle_deck_tree", "Toggle Sidebar", show=False),
@@ -158,6 +159,10 @@ class MemoticaApp(App):
 
     def action_show_help_screen(self) -> None:
         self.push_screen(HelpModal())
+
+    def action_refresh(self) -> None:
+        self.__reload_decks()
+        self.__reload_cards()
 
     def action_toggle_deck_tree(self) -> None:
         self.show_sidebar = not self.show_sidebar

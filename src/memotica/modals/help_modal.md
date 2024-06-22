@@ -6,6 +6,7 @@
 ### General Bindings
 
 - `F1`: Display this screen.
+- `F5`: Refresh flashcards and decks.
 - `ctrl+q`: Quit or cancel.
 - `ctrl+b`: Show or hide decks tree.
 - `escape`: Close the current modal.
