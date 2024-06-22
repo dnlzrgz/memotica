@@ -12,8 +12,8 @@ class FlashcardsTable(DataTable):
         super().__init__(cursor_type="row", *args, **kwargs)
 
     BINDINGS = [
-        Binding("backspace", "delete", "Delete Flashcard", priority=True),
-        Binding("ctrl+e", "edit", "Edit Flashcard", priority=True),
+        Binding("backspace", "delete", "Delete", priority=True),
+        Binding("ctrl+e", "edit", "Edit", priority=True),
         Binding("k", "cursor_up", "Cursor Up", show=False),
         Binding("j", "cursor_down", "Cursor Down", show=False),
     ]

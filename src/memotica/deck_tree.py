@@ -10,8 +10,8 @@ class DeckTree(Tree):
         super().__init__(label="*", *args, **kwargs)
 
     BINDINGS = [
-        Binding("backspace", "delete", "Delete Deck"),
-        Binding("ctrl+e", "edit", "Edit Deck"),
+        Binding("backspace", "delete", "Delete"),
+        Binding("ctrl+e", "edit", "Edit"),
         Binding("k", "cursor_up", "Cursor Up", show=False),
         Binding("j", "cursor_down", "Cursor Down", show=False),
     ]

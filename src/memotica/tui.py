@@ -11,11 +11,10 @@ from memotica.db import init_db
 from memotica.modals import (
     AddDeckModal,
     EditDeckModal,
-    DeleteDeckModal,
     AddFlashcardModal,
-    DeleteFlashcardModal,
     EditFlashcardModal,
     HelpModal,
+    ConfirmationModal,
 )
 from memotica.deck_tree import DeckTree
 from memotica.flashcards_table import FlashcardsTable
@@ -77,7 +76,12 @@ class MemoticaApp(App):
                 self.__reload_decks()
                 self.__reload_cards()
 
-        self.push_screen(DeleteDeckModal(deck.name), callback)
+        self.push_screen(
+            ConfirmationModal(
+                f"Are you sure that you want to delete '{deck.name}'? All its flashcards will be deleted to!"
+            ),
+            callback,
+        )
 
     def on_deck_tree_edit_message(self, message: DeckTree.EditMessage) -> None:
         def callback(result: str) -> None:
@@ -115,7 +119,10 @@ class MemoticaApp(App):
                 self.flashcards_repository.delete(flashcard.id)
                 self.__reload_cards()
 
-        self.push_screen(DeleteFlashcardModal(), callback)
+        self.push_screen(
+            ConfirmationModal("Are you sure that you want to delete this flashcard?"),
+            callback,
+        )
 
     def on_flashcards_table_edit_message(
         self,

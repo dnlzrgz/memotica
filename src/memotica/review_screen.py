@@ -19,6 +19,7 @@ class ReviewScreen(Screen):
         ),
         Binding("escape", "app.pop_screen", "Stop Review", show=False, priority=True),
         Binding("ctrl+s", "app.pop_screen", "Stop Review", show=False, priority=True),
+        Binding("f5", "disable_binding", "Nothing", show=False, priority=True),
         Binding("ctrl+a", "disable_binding", "Nothing", show=False, priority=True),
         Binding("ctrl+n", "disable_binding", "Nothing", show=False, priority=True),
     ]

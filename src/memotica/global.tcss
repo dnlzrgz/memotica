@@ -5,12 +5,11 @@ Screen {
 }
 
 AddDeckModal,
-DeleteDeckModal,
 EditDeckModal,
 AddFlashcardModal,
-DeleteFlashcardModal,
 EditFlashcardModal,
-HelpModal {
+HelpModal,
+ConfirmationModal {
   align: center middle;
 }
 
@@ -29,8 +28,7 @@ HelpModal {
   width: 60;
 }
 
-.modal--delete-deck,
-.modal--delete-flashcard {
+.modal--confirm {
   height: 12;
   width: 60;
 }
@@ -42,8 +40,7 @@ HelpModal {
   grid-rows: auto 1fr auto;
 }
 
-.modal--delete-deck Static,
-.modal--delete-flashcard Static {
+.modal--confirm Static {
   padding: 1;
 }
 
@@ -70,7 +67,7 @@ HelpModal {
   layout: horizontal;
 }
 
-.modal__options--delete {
+.modal--confirm .modal__options {
   grid-columns: 1fr 1fr;
   grid-gutter: 1;
   grid-size: 2 1;
@@ -78,7 +75,7 @@ HelpModal {
   padding: 1;
 }
 
-.modal__options--delete Button {
+.modal--confirm .modal__options Button {
   width: 100%;
 }
 
