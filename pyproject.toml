@@ -23,6 +23,10 @@ commitizen = "^3.27.0"
 ruff = "^0.4.8"
 textual-dev = "^1.5.1"
 
+
+[tool.poetry.group.tests.dependencies]
+pytest = "^8.2.2"
+
 [tool.poetry.scripts]
 memotica="memotica.cli:cli"
 
