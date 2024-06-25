@@ -52,13 +52,8 @@ class DeckRepository(Repository[Deck]):
 
     def delete(self, id: int) -> None:
         deck = self.get(id)
-        if deck:
-            self.session.query(Deck).filter(Deck.parent_id == deck.id).update(
-                {"parent_id": None}
-            )
-            self.session.delete(deck)
-
-            self.session.commit()
+        self.session.delete(deck)
+        self.session.commit()
 
 
 class FlashcardRepository(Repository[Flashcard]):

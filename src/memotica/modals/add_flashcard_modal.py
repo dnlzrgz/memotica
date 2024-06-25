@@ -29,10 +29,9 @@ class AddFlashcardModal(ModalScreen):
                     classes="modal__reversible",
                 ),
                 Select(
-                    allow_blank=True,
+                    allow_blank=False,
                     options=((deck.name, deck.id) for deck in self.decks),
                     prompt="Deck",
-                    value=self.decks[0].id,
                 ),
                 classes="modal__options",
             )

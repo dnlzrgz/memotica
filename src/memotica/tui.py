@@ -68,11 +68,15 @@ class MemoticaApp(App):
         self.app.exit()
 
     def on_deck_tree_delete_message(self, _: DeckTree.DeleteMessage) -> None:
+        if not self.deck_id:
+            return
+
         deck = self.decks_repository.get(self.deck_id)
 
         def callback(result: bool) -> None:
             if result:
                 self.decks_repository.delete(deck.id)
+                self.deck_id = None
                 self.__reload_decks()
                 self.__reload_cards()
 
@@ -83,26 +87,36 @@ class MemoticaApp(App):
             callback,
         )
 
-    def on_deck_tree_edit_message(self, message: DeckTree.EditMessage) -> None:
-        def callback(result: str) -> None:
-            if result:
-                self.decks_repository.update(self.deck_id, name=message.deck_name)
+    def on_deck_tree_edit_message(self, _: DeckTree.EditMessage) -> None:
+        if not self.deck_id:
+            return
 
-                self.notify(
-                    "Deck updated!",
-                    severity="information",
-                    timeout=5,
-                )
+        deck = self.decks_repository.get(self.deck_id)
 
-                self.__reload_decks()
-                self.__reload_cards()
+        def callback(result: Deck) -> None:
+            self.decks_repository.update(
+                self.deck_id,
+                name=result.name,
+                parent_id=result.parent_id,
+            )
 
-        self.push_screen(EditDeckModal(message.deck_name, self.decks), callback)
+            self.notify(
+                "Deck updated!",
+                severity="information",
+                timeout=5,
+            )
+
+            self.__reload_decks()
+            self.__reload_cards()
+
+        assert deck is not None
+        self.push_screen(EditDeckModal(deck, self.decks), callback)
 
     def on_deck_tree_deck_selected_message(
         self,
         message: DeckTree.DeckSelectedMessage,
     ) -> None:
+        # TODO: Add visual indicator
         deck = self.decks_repository.get_by_name(message.deck_name)
         if deck:
             self.deck_id = deck.id

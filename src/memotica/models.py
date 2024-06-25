@@ -14,13 +14,19 @@ class Deck(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
 
+    parent_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("decks.id"), nullable=True
+    )
+    parent = relationship("Deck", remote_side=[id], back_populates="sub_decks")
+    sub_decks = relationship("Deck", back_populates="parent")
+
     flashcards: Mapped[List["Flashcard"]] = relationship(
         back_populates="deck",
         cascade="all,delete",
     )
 
     def __repr__(self) -> str:
-        return f"Deck(id={self.id!r}, name={self.name!r})"
+        return f"Deck(id={self.id!r}, name={self.name!r}, parent={self.parent!r})"
 
 
 class Flashcard(Base):
@@ -30,17 +36,16 @@ class Flashcard(Base):
 
     front: Mapped[str]
     back: Mapped[str]
-    reversible: Mapped[bool] = mapped_column(Boolean(), default=True)
+    reversible: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
     last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
 
-    deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id"))
+    deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id"), index=True)
     deck: Mapped["Deck"] = relationship(back_populates="flashcards")
 
     reviews: Mapped[List["Review"]] = relationship(
-        back_populates="flashcard",
-        cascade="all,delete",
+        back_populates="flashcard", cascade="all,delete"
     )
 
     def __repr__(self) -> str:
@@ -61,7 +66,7 @@ class Review(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
     last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
 
-    flashcard_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id"))
+    flashcard_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id"), index=True)
     flashcard: Mapped["Flashcard"] = relationship(back_populates="reviews")
 
     def __repr__(self) -> str:

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import Session
 from memotica.models import Base, Deck, Flashcard, Review
 from memotica.repositories import DeckRepository, FlashcardRepository, ReviewRepository
@@ -83,6 +83,53 @@ class TestDeckRepository:
         self.deck_repository.delete(deck.id)
         deleted_deck = self.deck_repository.get(deck.id)
         assert deleted_deck is None
+
+    def test_deck_with_sub_deck(self):
+        parent_deck = self.deck_repository.add(Deck(name="Testing"))
+        assert parent_deck is not None
+
+        children_deck = self.deck_repository.add(
+            Deck(name="Testing 101", parent=parent_deck)
+        )
+        assert children_deck is not None
+        assert children_deck.parent_id == parent_deck.id
+        assert len(children_deck.sub_decks) == 0
+
+        parent_deck = self.deck_repository.get(parent_deck.id)
+        assert parent_deck is not None
+        assert len(parent_deck.sub_decks) == 1
+
+    def test_delete_deck_with_sub_deck(self):
+        parent_deck = self.deck_repository.add(Deck(name="Testing"))
+        assert parent_deck is not None
+
+        children_deck = self.deck_repository.add(
+            Deck(name="Testing 101", parent=parent_deck)
+        )
+        assert children_deck is not None
+
+        self.deck_repository.delete(parent_deck.id)
+
+        children_deck = self.deck_repository.get(children_deck.id)
+        assert children_deck.parent is None
+        assert children_deck.parent_id is None
+
+    def test_delete_sub_deck(self):
+        parent_deck = self.deck_repository.add(Deck(name="Testing"))
+        assert parent_deck is not None
+
+        children_deck = self.deck_repository.add(
+            Deck(name="Testing 101", parent=parent_deck)
+        )
+        assert children_deck is not None
+
+        parent_deck = self.deck_repository.get(parent_deck.id)
+        assert len(parent_deck.sub_decks) == 1
+
+        self.deck_repository.delete(children_deck.id)
+
+        parent_deck = self.deck_repository.get(parent_deck.id)
+        assert len(parent_deck.sub_decks) == 0
 
 
 class TestFlashcardRepository:

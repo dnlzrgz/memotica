@@ -25,6 +25,7 @@ class DeckTree(Tree):
     def reload_decks(self, decks: list[Deck] | None = None) -> None:
         self.loading = True
         self.clear()
+
         self.current_node_label = None
         self.guide_depth = 3
         self.root.expand()
@@ -33,9 +34,15 @@ class DeckTree(Tree):
             self.loading = False
             return
 
-        self.decks = decks
-        for deck in self.decks:
-            self.root.add_leaf(deck.name)
+        root_decks = [deck for deck in decks if deck.parent_id is None]
+
+        def add_deck_to_tree(parent, deck):
+            node = parent.add(deck.name)
+            for sub_deck in deck.sub_decks:
+                add_deck_to_tree(node, sub_deck)
+
+        for root_deck in root_decks:
+            add_deck_to_tree(self.root, root_deck)
 
         self.loading = False
 
