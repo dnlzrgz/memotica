@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import pytest
-from sqlalchemy import create_engine, delete
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from memotica.models import Base, Deck, Flashcard, Review
 from memotica.repositories import DeckRepository, FlashcardRepository, ReviewRepository
@@ -50,6 +50,22 @@ class TestDeckRepository:
         assert deck_in_db is not None
         assert deck_in_db.name == "Testing 101"
 
+    def test_get_with_subdecks(self):
+        NUM_CHILDREN = 5
+
+        parent_deck = self.deck_repository.add(Deck(name="Parent"))
+        children = [
+            self.deck_repository.add(Deck(name=f"Child {i}", parent=parent_deck))
+            for i in range(NUM_CHILDREN)
+        ]
+
+        for child in children:
+            assert child.parent_id == parent_deck.id
+            self.deck_repository.add(Deck(name=f"Child of {child.name}", parent=child))
+
+        decks_in_db = self.deck_repository.get_with_subdecks(parent_deck.id)
+        assert len(decks_in_db) == (NUM_CHILDREN * 2) + 1
+
     def test_get_by_name(self):
         deck = self.deck_repository.add(Deck(name="Testing 101"))
 
@@ -83,21 +99,6 @@ class TestDeckRepository:
         self.deck_repository.delete(deck.id)
         deleted_deck = self.deck_repository.get(deck.id)
         assert deleted_deck is None
-
-    def test_deck_with_sub_deck(self):
-        parent_deck = self.deck_repository.add(Deck(name="Testing"))
-        assert parent_deck is not None
-
-        children_deck = self.deck_repository.add(
-            Deck(name="Testing 101", parent=parent_deck)
-        )
-        assert children_deck is not None
-        assert children_deck.parent_id == parent_deck.id
-        assert len(children_deck.sub_decks) == 0
-
-        parent_deck = self.deck_repository.get(parent_deck.id)
-        assert parent_deck is not None
-        assert len(parent_deck.sub_decks) == 1
 
     def test_delete_deck_with_sub_deck(self):
         parent_deck = self.deck_repository.add(Deck(name="Testing"))
@@ -164,15 +165,39 @@ class TestFlashcardRepository:
         assert flashcard_in_db.deck_id == self.deck.id
 
     def test_get_by_deck(self):
-        self.flashcard_repository.add(
-            Flashcard(front="Wasser", back="Water", deck=self.deck)
-        )
-        self.flashcard_repository.add(
-            Flashcard(front="Kuh", back="Cow", deck=self.deck)
-        )
+        flashcards = [
+            self.flashcard_repository.add(
+                Flashcard(front=f"Front {i}", back=f"Back {i}", deck=self.deck)
+            )
+            for i in range(10)
+        ]
 
         flashcards_by_deck = self.flashcard_repository.get_by_deck(self.deck.id)
-        assert len(flashcards_by_deck) == 2
+        assert len(flashcards_by_deck) == len(flashcards)
+
+    def test_get_by_decks(self):
+        NUM_FLASHCARDS = 10
+        _ = [
+            self.flashcard_repository.add(
+                Flashcard(front=f"Front {i}", back=f"Back {i}", deck=self.deck)
+            )
+            for i in range(NUM_FLASHCARDS)
+        ]
+
+        sub_deck = self.deck_repository.add(Deck(name="Subdeck", parent=self.deck))
+        assert sub_deck is not None
+
+        _ = [
+            self.flashcard_repository.add(
+                Flashcard(front=f"Front {i}", back=f"Back {i}", deck=sub_deck)
+            )
+            for i in range(NUM_FLASHCARDS)
+        ]
+
+        flashcards_in_decks = self.flashcard_repository.get_by_decks(
+            [self.deck.id, sub_deck.id]
+        )
+        assert len(flashcards_in_decks) == NUM_FLASHCARDS * 2
 
     def test_get_all(self):
         self.flashcard_repository.add(
