@@ -4,10 +4,8 @@ Screen {
   width: auto;
 }
 
-AddDeckModal,
-EditDeckModal,
-AddFlashcardModal,
-EditFlashcardModal,
+DeckModal,
+FlashcardModal,
 HelpModal,
 ConfirmationModal {
   align: center middle;
@@ -22,8 +20,7 @@ ConfirmationModal {
   width: auto;
 }
 
-.modal--add-deck,
-.modal--edit-deck {
+.modal-deck {
   height: auto;
   width: 60;
 }
@@ -33,8 +30,7 @@ ConfirmationModal {
   width: 60;
 }
 
-.modal--add-card,
-.modal--edit-card {
+.modal--flashcard {
   layout: grid;
   grid-columns: 1fr;
   grid-rows: auto 1fr auto;

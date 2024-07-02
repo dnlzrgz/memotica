@@ -1,4 +1,3 @@
-from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.screen import ModalScreen
@@ -8,32 +7,53 @@ from textual.widgets import Input, Select
 from memotica.models import Deck
 
 
-class AddDeckModal(ModalScreen):
+class DeckModal(ModalScreen):
     """
-    A modal screen to add/edit decks.
+    A modal screen to edit an existing deck or add a new one.
     """
 
+    # Bindings to close the modal
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("escape", "quit", "Quit"),
     ]
 
-    def __init__(self, decks: list[Deck] | None = None, *args, **kwargs):
+    def __init__(
+        self,
+        deck: Deck | None = None,
+        decks: list[Deck] = [],
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
+
+        self.deck = deck
         self.decks = decks
-        self.decks_names = []
+        self.decks_names = [
+            deck.name for deck in decks if self.deck and self.deck.id != deck.id
+        ]
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll(classes="modal modal--add-deck"):
+        with VerticalScroll(classes="modal modal--deck"):
             yield Select(
                 allow_blank=True,
-                options=((deck.name, deck.id) for deck in self.decks),
+                options=(
+                    (deck.name, deck.id)
+                    for deck in self.decks
+                    if self.deck and deck.id != self.deck.id
+                ),
+                value=(
+                    self.deck.parent_id
+                    if self.deck and self.deck.parent_id
+                    else Select.BLANK
+                ),
                 prompt="Parent deck",
             )
 
             yield Input(
                 placeholder="Deck name",
                 max_length=50,
+                value=self.deck.name if self.deck else "",
                 validators=[
                     Function(
                         self.validate_deck_already_exists,
@@ -41,7 +61,7 @@ class AddDeckModal(ModalScreen):
                     ),
                     Function(
                         self.validate_value_is_not_empty,
-                        "Deck needs to have a valid name.",
+                        "A deck needs to have a valid name.",
                     ),
                 ],
                 validate_on=["submitted"],
@@ -49,19 +69,26 @@ class AddDeckModal(ModalScreen):
             ).focus()
 
     def action_quit(self) -> None:
+        """
+        Quits the modal.
+        """
+
         self.app.pop_screen()
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")
-        modal.border_title = "Add a new deck"
-        modal.border_subtitle = "^q/esc to Close"
+        if self.deck:
+            modal.border_title = f"Edit '{self.deck.name}'"
+        else:
+            modal.border_title = "Add a new deck"
 
-        if not self.decks:
-            select = self.query_one(Select)
-            select.disabled = True
+        modal.border_subtitle = "^q/esc to Close/Cancel"
 
-    @on(Input.Submitted)
-    def save_deck(self, event: Input.Submitted) -> None:
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        """
+        Handles the "form" submission.
+        """
+
         if not event.validation_result.is_valid:
             for description in event.validation_result.failure_descriptions:
                 self.notify(
@@ -73,20 +100,22 @@ class AddDeckModal(ModalScreen):
 
         selected_parent = self.query_one(Select)
         if selected_parent.value == Select.BLANK:
-            deck = Deck(name=event.value)
+            parent_id = None
         else:
-            deck = Deck(name=event.value, parent_id=selected_parent.value)
+            parent_id = selected_parent.value
+
+        deck = Deck(
+            name=event.value,
+            parent_id=parent_id,
+        )
 
         self.dismiss(deck)
 
     def validate_deck_already_exists(self, value) -> bool:
-        if not self.decks:
-            return True
-
         if not self.decks_names:
-            self.decks_names = [deck.name for deck in self.decks]
+            return True
 
         return True if value not in self.decks_names else False
 
     def validate_value_is_not_empty(self, value) -> bool:
-        return True if value.strip() else False
+        return bool(value.strip())
