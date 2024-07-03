@@ -30,7 +30,7 @@ class ConfirmationModal(ModalScreen):
             )
 
     def action_quit(self) -> None:
-        self.dismiss(False)
+        self.dismiss()
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")
@@ -41,4 +41,4 @@ class ConfirmationModal(ModalScreen):
         if f"{event.button.label}" == "Delete":
             self.dismiss(True)
         else:
-            self.dismiss(False)
+            self.dismiss()

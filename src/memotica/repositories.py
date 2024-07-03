@@ -54,7 +54,7 @@ class DeckRepository(Repository[Deck]):
             select(Deck).where(Deck.id.in_(select(subdecks.c.id)))
         )
 
-        return result.all()
+        return result.scalars().all()
 
     def get_by_name(self, name: str) -> Deck | None:
         return self.session.query(Deck).where(Deck.name == name).one_or_none()
@@ -124,3 +124,9 @@ class ReviewRepository(Repository[Review]):
             .order_by(Review.ef, Review.interval, Review.next_review)
             .all()
         )
+
+    def delete_by_flashcard(self, flashcard_id: int) -> None:
+        reviews = self.get_by_flashcard(flashcard_id)
+        if reviews:
+            for review in reviews:
+                self.delete(review.id)

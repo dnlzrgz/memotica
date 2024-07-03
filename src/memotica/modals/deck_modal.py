@@ -21,17 +21,21 @@ class DeckModal(ModalScreen):
     def __init__(
         self,
         deck: Deck | None = None,
-        decks: list[Deck] = [],
+        decks: list[Deck] | None = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
 
         self.deck = deck
-        self.decks = decks
-        self.decks_names = [
-            deck.name for deck in decks if self.deck and self.deck.id != deck.id
-        ]
+        if decks:
+            self.decks = decks
+            self.decks_names = [
+                deck.name for deck in decks if self.deck and self.deck.id != deck.id
+            ]
+        else:
+            self.decks = []
+            self.decks_names = []
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(classes="modal modal--deck"):
@@ -73,7 +77,7 @@ class DeckModal(ModalScreen):
         Quits the modal.
         """
 
-        self.app.pop_screen()
+        self.dismiss()
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")

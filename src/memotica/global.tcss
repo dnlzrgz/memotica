@@ -20,7 +20,7 @@ ConfirmationModal {
   width: auto;
 }
 
-.modal-deck {
+.modal--deck {
   height: auto;
   width: 60;
 }
@@ -106,7 +106,7 @@ ConfirmationModal {
 }
 
 DeckTree {
-  width: auto;
+  width: 32;
   padding: 1;
   padding-right: 3;
 }

@@ -1,14 +1,12 @@
+from textwrap import shorten
 from textual.binding import Binding
-from textual.message import Message
 from textual.widgets import DataTable
+from memotica.messages import AddFlashcard, DeleteFlashcard, EditFlashcard
+from memotica.models import Flashcard
 
 
 class FlashcardsTable(DataTable):
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(cursor_type="row", *args, **kwargs)
 
     BINDINGS = [
@@ -28,20 +26,34 @@ class FlashcardsTable(DataTable):
     def on_blur(self) -> None:
         self.remove_class("focused")
 
+    def add_flashcard(self):
+        self.post_message(AddFlashcard())
+
     def action_edit(self) -> None:
         row_key, _ = self.coordinate_to_cell_key(self.cursor_coordinate)
-        self.post_message(self.EditMessage(row_key.value))
+        flashcard_id = int(row_key.value)
+        self.post_message(EditFlashcard(flashcard_id))
 
     def action_delete(self) -> None:
         row_key, _ = self.coordinate_to_cell_key(self.cursor_coordinate)
-        self.post_message(self.DeleteMessage(row_key.value))
+        flashcard_id = int(row_key.value)
+        self.post_message(DeleteFlashcard(flashcard_id))
 
-    class DeleteMessage(Message):
-        def __init__(self, row_key: str) -> None:
-            self.row_key = row_key
-            super().__init__()
+    def reload(self, flashcards: list[Flashcard] | None = None) -> None:
+        self.loading = True
+        self.clear()
 
-    class EditMessage(Message):
-        def __init__(self, row_key: str) -> None:
-            self.row_key = row_key
-            super().__init__()
+        if not flashcards:
+            self.loading = False
+            return
+
+        for flashcard in flashcards:
+            self.add_row(
+                shorten(flashcard.front, width=40, placeholder="..."),
+                shorten(flashcard.back, width=40, placeholder="..."),
+                flashcard.reversible,
+                flashcard.deck.name,
+                key=f"{flashcard.id}",
+            )
+
+        self.loading = False

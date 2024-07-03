@@ -1,4 +1,3 @@
-from textwrap import shorten
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -8,18 +7,22 @@ from textual.reactive import reactive
 from textual.widgets import Footer, Header
 from memotica.config import Config
 from memotica.db import init_db
-from memotica.modals import (
-    AddDeckModal,
-    EditDeckModal,
-    AddFlashcardModal,
-    EditFlashcardModal,
-    HelpModal,
-    ConfirmationModal,
+from memotica.messages import (
+    AddDeck,
+    AddFlashcard,
+    DeleteDeck,
+    DeleteFlashcard,
+    EditDeck,
+    EditFlashcard,
+    SelectDeck,
 )
+from memotica.modals import HelpModal
 from memotica.deck_tree import DeckTree
 from memotica.flashcards_table import FlashcardsTable
-from memotica.models import Flashcard, Deck, Review
+from memotica.modals.flashcard_modal import FlashcardModal
+from memotica.models import Deck, Flashcard, Review
 from memotica.repositories import FlashcardRepository, DeckRepository, ReviewRepository
+from memotica.modals import DeckModal, ConfirmationModal
 from memotica.review_screen import ReviewScreen
 
 
@@ -32,23 +35,23 @@ class MemoticaApp(App):
     CSS_PATH = "global.tcss"
 
     BINDINGS = [
-        Binding("f1", "show_help_screen", "Help", show=True),
+        Binding("f1", "show_help", "Help", show=True),
         Binding("f5", "refresh", "Refresh data", show=False),
         Binding("ctrl+q", "quit", "Quit", show=True),
         Binding("ctrl+d", "toggle_dark", "Toggle Dark Mode", show=False),
-        Binding("ctrl+b", "toggle_deck_tree", "Toggle Sidebar", show=False),
+        Binding("ctrl+b", "toggle_sidebar", "Toggle Sidebar", show=False),
         Binding("ctrl+s", "start_review", "Start Review", show=True),
         Binding("ctrl+n", "add_deck", "Add Deck", show=True),
         Binding("ctrl+a", "add_flashcard", "Add Flashcard", show=True),
     ]
 
     show_sidebar: reactive[bool] = reactive(True)
-    deck_id: reactive[int | None] = reactive(None)
+    selected_deck: reactive[Deck | None] = reactive(None)
+    decks: reactive[list[Deck] | None] = reactive(None)
 
     def __init__(self, session: Session, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.session = session
-
         self.flashcards_repository = FlashcardRepository(session)
         self.decks_repository = DeckRepository(session)
         self.reviews_repository = ReviewRepository(session)
@@ -60,42 +63,37 @@ class MemoticaApp(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.__reload_decks()
-        self.__reload_cards()
+        self.flashcards_table = self.query_one(FlashcardsTable)
+        self.deck_tree = self.query_one(DeckTree)
+
+        self.__reload()
 
     def on_quit(self) -> None:
         self.session.flush()
         self.app.exit()
 
-    def on_deck_tree_delete_message(self, _: DeckTree.DeleteMessage) -> None:
-        if not self.deck_id:
+    def on_add_deck(self, _: AddDeck) -> None:
+        def callback(result: Deck) -> None:
+            self.decks_repository.add(result)
+            self.__reload()
+
+        self.push_screen(DeckModal(decks=self.decks), callback)
+
+    def on_select_deck(self, message: SelectDeck) -> None:
+        if message.deck_name:
+            deck = self.decks_repository.get_by_name(message.deck_name)
+            self.selected_deck = deck
+            self.__reload_flashcards()
+
+    def on_edit_deck(self, _: EditDeck) -> None:
+        if not self.selected_deck:
             return
-
-        deck = self.decks_repository.get(self.deck_id)
-
-        def callback(result: bool) -> None:
-            if result:
-                self.decks_repository.delete(deck.id)
-                self.deck_id = None
-                self.__reload_decks()
-                self.__reload_cards()
-
-        self.push_screen(
-            ConfirmationModal(
-                f"Are you sure that you want to delete '{deck.name}'? All its flashcards will be deleted to!"
-            ),
-            callback,
-        )
-
-    def on_deck_tree_edit_message(self, _: DeckTree.EditMessage) -> None:
-        if not self.deck_id:
-            return
-
-        deck = self.decks_repository.get(self.deck_id)
 
         def callback(result: Deck) -> None:
+            assert self.selected_deck
+
             self.decks_repository.update(
-                self.deck_id,
+                self.selected_deck.id,
                 name=result.name,
                 parent_id=result.parent_id,
             )
@@ -106,104 +104,34 @@ class MemoticaApp(App):
                 timeout=5,
             )
 
-            self.__reload_decks()
-            self.__reload_cards()
+            self.__reload()
 
-        assert deck is not None
-        self.push_screen(EditDeckModal(deck, self.decks), callback)
-
-    def on_deck_tree_deck_selected_message(
-        self,
-        message: DeckTree.DeckSelectedMessage,
-    ) -> None:
-        # TODO: Add visual indicator
-        deck = self.decks_repository.get_by_name(message.deck_name)
-        if deck:
-            self.deck_id = deck.id
-            self.__reload_cards()
-
-    def on_flashcards_table_delete_message(
-        self,
-        message: FlashcardsTable.DeleteMessage,
-    ) -> None:
-        flashcard = self.flashcards_repository.get(int(message.row_key))
-
-        def callback(result: bool) -> None:
-            if result:
-                self.flashcards_repository.delete(flashcard.id)
-                self.__reload_cards()
+        assert self.decks
 
         self.push_screen(
-            ConfirmationModal("Are you sure that you want to delete this flashcard?"),
+            DeckModal(self.selected_deck, self.decks),
             callback,
         )
 
-    def on_flashcards_table_edit_message(
-        self,
-        message: FlashcardsTable.EditMessage,
-    ) -> None:
-        flashcard_id = int(message.row_key)
+    def on_delete_deck(self, _: DeleteDeck) -> None:
+        if not self.selected_deck:
+            return
 
-        def callback(result: Flashcard) -> None:
-            if result:
-                self.flashcards_repository.update(
-                    flashcard_id,
-                    reversible=result.reversible,
-                    front=result.front,
-                    back=result.back,
-                    deck_id=result.deck_id,
-                    last_updated_at=datetime.now(),
-                )
+        def callback(_: bool) -> None:
+            assert self.selected_deck
 
-                reviews = self.reviews_repository.get_by_flashcard(flashcard_id)
-                for review in reviews:
-                    self.reviews_repository.delete(review.id)
+            self.decks_repository.delete(self.selected_deck.id)
+            self.__reload()
 
-                self.reviews_repository.add(Review(flashcard_id=flashcard_id))
+        self.app.push_screen(
+            ConfirmationModal(
+                f"Are you sure that you want to delete '{self.selected_deck.name}'? All the flashcards will be deleted to!"
+            ),
+            callback,
+        )
 
-                if result.reversible:
-                    self.reviews_repository.add(
-                        Review(flashcard_id=flashcard_id, direction="btf")
-                    )
-
-                self.notify(
-                    "Flashcard updated",
-                    severity="information",
-                    timeout=5,
-                )
-
-                self.__reload_cards()
-
-        flashcard = self.flashcards_repository.get(flashcard_id)
-        assert flashcard is not None
-        self.push_screen(EditFlashcardModal(flashcard, self.decks), callback)
-
-    def action_show_help_screen(self) -> None:
-        self.push_screen(HelpModal())
-
-    def action_refresh(self) -> None:
-        self.__reload_decks()
-        self.__reload_cards()
-
-    def action_toggle_deck_tree(self) -> None:
-        self.show_sidebar = not self.show_sidebar
-        deck_tree = self.query_one(DeckTree)
-        deck_tree.can_focus = self.show_sidebar
-
-        if self.show_sidebar:
-            deck_tree.remove_class("hide")
-        else:
-            deck_tree.add_class("hide")
-
-    def action_add_deck(self) -> None:
-        def callback(result: Deck) -> None:
-            self.decks_repository.add(result)
-            self.__reload_decks()
-
-        self.push_screen(AddDeckModal(self.decks), callback)
-
-    def action_add_flashcard(self) -> None:
-        if len(self.decks) <= 0:
+    def on_add_flashcard(self, _: AddFlashcard) -> None:
+        if not self.decks:
             self.notify(
                 "You need to add a Deck first! Check the help if you need to.",
                 severity="error",
@@ -212,19 +140,87 @@ class MemoticaApp(App):
             return
 
         def callback(result: Flashcard) -> None:
-            self.flashcards_repository.add(result)
-            self.reviews_repository.add(Review(flashcard_id=result.id))
+            flashcard = self.flashcards_repository.add(result)
+            self.reviews_repository.add(Review(flashcard=flashcard))
 
             if result.reversible:
                 self.reviews_repository.add(
-                    Review(flashcard_id=result.id, direction="btf")
+                    Review(flashcard_id=flashcard.id, direction="btf")
                 )
 
-            self.__reload_cards()
+            self.__reload_flashcards()
 
-        self.push_screen(AddFlashcardModal(self.decks), callback)
+        self.push_screen(FlashcardModal(decks=self.decks), callback)
+
+    def on_edit_flashcard(self, message: EditFlashcard) -> None:
+        flashcard = self.flashcards_repository.get(message.flashcard_id)
+        if not flashcard:
+            return
+
+        def callback(result: Flashcard) -> None:
+            self.flashcards_repository.update(
+                flashcard.id,
+                reversible=result.reversible,
+                front=result.front,
+                back=result.back,
+                deck_id=result.deck_id,
+                last_updated_at=datetime.now(),
+            )
+
+            self.reviews_repository.delete_by_flashcard(flashcard.id)
+
+            self.reviews_repository.add(Review(flashcard=flashcard))
+            if result.reversible:
+                self.reviews_repository.add(
+                    Review(flashcard=flashcard, direction="btf")
+                )
+
+            self.notify(
+                "Flashcard updated",
+                severity="information",
+                timeout=5,
+            )
+
+            self.__reload_flashcards()
+
+        assert self.decks
+
+        self.app.push_screen(FlashcardModal(self.decks, flashcard), callback)
+
+    def on_delete_flashcard(self, message: DeleteFlashcard) -> None:
+        def callback(_: bool) -> None:
+            self.flashcards_repository.delete(message.flashcard_id)
+            self.flashcards_table.remove_row(message.flashcard_id)
+
+        self.app.push_screen(
+            ConfirmationModal("Are you sure that you want to delete this flashcard?"),
+            callback,
+        )
+
+    def action_show_help(self) -> None:
+        self.push_screen(HelpModal())
+
+    def action_refresh(self) -> None:
+        self.__reload()
+
+    def action_toggle_sidebar(self) -> None:
+        self.show_sidebar = not self.show_sidebar
+        self.deck_tree.can_focus = self.show_sidebar
+
+        if self.show_sidebar:
+            self.deck_tree.remove_class("hide")
+        else:
+            self.deck_tree.add_class("hide")
+
+    def action_add_deck(self) -> None:
+        self.deck_tree.add_deck()
+
+    def action_add_flashcard(self) -> None:
+        self.flashcards_table.add_flashcard()
 
     def action_start_review(self) -> None:
+        return
+
         if not self.deck_id:
             self.notify(
                 "You need to select a Deck first!",
@@ -252,30 +248,24 @@ class MemoticaApp(App):
         )
 
     def __reload_decks(self) -> None:
-        deck_tree = self.query_one(DeckTree)
         self.decks = self.decks_repository.get_all()
-        deck_tree.reload_decks(self.decks)
+        self.deck_tree.reload(self.decks)
 
-    def __reload_cards(self) -> None:
-        flashcards_table = self.query_one(FlashcardsTable)
-        flashcards_table.loading = True
-        flashcards_table.clear()
-
-        if self.deck_id:
-            self.flashcards = self.flashcards_repository.get_by_deck(self.deck_id)
-        else:
-            self.flashcards = self.flashcards_repository.get_all()
-
-        for flashcard in self.flashcards:
-            flashcards_table.add_row(
-                shorten(flashcard.front, width=40, placeholder="..."),
-                shorten(flashcard.back, width=40, placeholder="..."),
-                flashcard.reversible,
-                flashcard.deck.name,
-                key=f"{flashcard.id}",
+    def __reload_flashcards(self) -> None:
+        if self.selected_deck:
+            deck_and_subdecks = self.decks_repository.get_with_subdecks(
+                self.selected_deck.id
             )
+            ids = [deck.id for deck in deck_and_subdecks]
+            flashcards = self.flashcards_repository.get_by_decks(ids)
+            self.flashcards_table.reload(flashcards)
+        else:
+            flashcards = self.flashcards_repository.get_all()
+            self.flashcards_table.reload(flashcards)
 
-        flashcards_table.loading = False
+    def __reload(self) -> None:
+        self.__reload_decks()
+        self.__reload_flashcards()
 
 
 if __name__ == "__main__":

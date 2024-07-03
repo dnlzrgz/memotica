@@ -1,7 +1,6 @@
 from textual.binding import Binding
-from textual.message import Message
-from textual.reactive import reactive
 from textual.widgets import Tree
+from memotica.messages import AddDeck, DeleteDeck, EditDeck, SelectDeck
 from memotica.models import Deck
 
 
@@ -16,17 +15,36 @@ class DeckTree(Tree):
         Binding("j", "cursor_down", "Cursor Down", show=False),
     ]
 
-    current_node_label: reactive[str | None] = reactive(None)
-
     def on_mount(self) -> None:
-        self.loading = True
         self.border_title = "Decks"
 
-    def reload_decks(self, decks: list[Deck] | None = None) -> None:
+    def on_tree_node_selected(self, selectedNode: Tree.NodeSelected) -> None:
+        node_label = f"{selectedNode.node.label}"
+        if node_label == "*":
+            self.post_message(SelectDeck())
+        else:
+            self.post_message(SelectDeck(node_label))
+
+    def on_focus(self) -> None:
+        self.add_class("focused")
+
+    def on_blur(self) -> None:
+        self.remove_class("focused")
+
+    def add_deck(self) -> None:
+        self.post_message(AddDeck())
+
+    def action_edit(self) -> None:
+        self.post_message(EditDeck())
+
+    def action_delete(self) -> None:
+        self.post_message(DeleteDeck())
+
+    def reload(self, decks: list[Deck] | None = None) -> None:
         self.loading = True
         self.clear()
 
-        self.current_node_label = None
+        self.post_message(SelectDeck())
         self.guide_depth = 3
         self.root.expand()
 
@@ -34,7 +52,7 @@ class DeckTree(Tree):
             self.loading = False
             return
 
-        root_decks = [deck for deck in decks if deck.parent_id is None]
+        root_decks = [deck for deck in self.app.decks if deck.parent_id is None]
 
         def add_deck_to_tree(parent, deck):
             node = parent.add(deck.name)
@@ -45,44 +63,3 @@ class DeckTree(Tree):
             add_deck_to_tree(self.root, root_deck)
 
         self.loading = False
-
-    def on_tree_node_selected(self, selectedNode: Tree.NodeSelected) -> None:
-        node_label = f"{selectedNode.node.label}"
-        if node_label == "*":
-            return
-
-        self.current_node_label = node_label
-        self.post_message(self.DeckSelectedMessage(self.current_node_label))
-
-    def on_focus(self) -> None:
-        self.add_class("focused")
-
-    def on_blur(self) -> None:
-        self.remove_class("focused")
-
-    def action_edit(self) -> None:
-        if self.current_node_label is None:
-            return
-
-        self.post_message(self.EditMessage(self.current_node_label))
-
-    def action_delete(self) -> None:
-        if self.current_node_label is None:
-            return
-
-        self.post_message(self.DeleteMessage(self.current_node_label))
-
-    class DeleteMessage(Message):
-        def __init__(self, deck_name: str) -> None:
-            self.deck_name = deck_name
-            super().__init__()
-
-    class EditMessage(Message):
-        def __init__(self, deck_name: str) -> None:
-            self.deck_name = deck_name
-            super().__init__()
-
-    class DeckSelectedMessage(Message):
-        def __init__(self, deck_name: str) -> None:
-            self.deck_name = deck_name
-            super().__init__()
