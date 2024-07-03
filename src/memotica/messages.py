@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from textual.message import Message
 
 
@@ -33,3 +34,23 @@ class DeleteFlashcard(Message):
     def __init__(self, flashcard_id: int) -> None:
         super().__init__()
         self.flashcard_id = flashcard_id
+
+
+class UpdateReview(Message):
+    def __init__(
+        self,
+        review_id: int,
+        repetitions: int,
+        ef: float,
+        interval: int,
+    ) -> None:
+        super().__init__()
+        self.review_id = review_id
+        self.repetitions = repetitions
+        self.ef = ef
+        self.interval = interval
+
+        now = datetime.now()
+
+        self.next_review = now.date() + timedelta(days=interval)
+        self.last_updated_at = now

@@ -14,14 +14,16 @@ class FlashcardModal(ModalScreen):
     def __init__(
         self,
         decks: list[Deck],
+        current_deck: Deck | None = None,
         flashcard: Flashcard | None = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
 
-        self.flashcard = flashcard
         self.decks = decks
+        self.flashcard = flashcard
+        self.current_deck = current_deck
 
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
@@ -41,7 +43,11 @@ class FlashcardModal(ModalScreen):
                 Select(
                     options=((deck.name, deck.id) for deck in self.decks),
                     prompt="Deck",
-                    value=self.flashcard.deck_id if self.flashcard else Select.BLANK,
+                    value=(
+                        self.flashcard.deck_id
+                        if self.flashcard
+                        else self.current_deck.id if self.current_deck else Select.BLANK
+                    ),
                 ),
                 classes="modal__options",
             )

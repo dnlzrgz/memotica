@@ -1,13 +1,11 @@
 from collections import deque
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
 from textual.reactive import reactive
 from textual.screen import Screen
 from textual.widgets import Footer, Markdown, Button
-from memotica.repositories import ReviewRepository
+from memotica.messages import UpdateReview
 from memotica.models import Review
 from memotica.sm2 import sm2
 
@@ -24,15 +22,11 @@ class ReviewScreen(Screen):
         Binding("ctrl+n", "disable_binding", "Nothing", show=False, priority=True),
     ]
 
-    review_queue: reactive[deque[Review]] = reactive(deque())
-    current_review: reactive[Review | None] = reactive(None)
     front_content: reactive[str] = reactive("", recompose=True)
     back_content: reactive[str] = reactive("", recompose=True)
 
-    def __init__(self, session: Session, deck_id: int, *args, **kwargs):
+    def __init__(self, reviews: list[Review], *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.reviews_repository = ReviewRepository(session)
-        reviews = self.reviews_repository.get_by_deck(deck_id)
         self.review_queue = deque(reviews)
         self.current_review = self.review_queue.popleft()
 
@@ -83,23 +77,22 @@ class ReviewScreen(Screen):
         answer = self.query(".review__screen--answer")
         question = self.query(".review__screen--question")
 
-        if f"{event.button.label}" == "Show":
+        button_label = f"{event.button.label}"
+
+        if button_label == "Show":
             answer.remove_class("hide")
             question.add_class("hide")
-            return
-
-        self.process_review(f"{event.button.label}")
-        self.load_next_review()
-        answer.add_class("hide")
-        question.remove_class("hide")
-
-    def process_review(self, q: str) -> None:
-        if q == "Good":
-            self.update_review(3)
-        elif q == "Easy":
-            self.update_review(5)
         else:
-            self.update_review()
+            if button_label == "Easy":
+                self.update_review(5)
+            elif button_label == "Good":
+                self.update_review(3)
+            else:
+                self.update_review()
+
+            self.load_next_review()
+            answer.add_class("hide")
+            question.remove_class("hide")
 
     def load_next_review(self) -> None:
         if not self.review_queue:
@@ -121,8 +114,6 @@ class ReviewScreen(Screen):
             self.back_content = self.current_review.flashcard.front
 
     def update_review(self, q: int = 0) -> None:
-        assert self.current_review is not None
-
         (n, ef, i) = sm2(
             self.current_review.repetitions,
             self.current_review.ef,
@@ -130,22 +121,11 @@ class ReviewScreen(Screen):
             q,
         )
 
-        now = datetime.now()
-        today = now.date()
-        next_review = today + timedelta(days=i)
+        self.post_message(UpdateReview(self.current_review.id, n, ef, i))
 
-        self.reviews_repository.update(
-            self.current_review.id,
-            repetitions=n,
-            ef=ef,
-            interval=i,
-            next_review=next_review,
-            last_updated_at=now,
-        )
-
-        if next_review <= today or q == 0:
+        if q < 3:
             self.current_review.repetitions = n
             self.current_review.ef = ef
             self.current_review.interval = i
-            self.current_review.next_review = next_review
+
             self.review_queue.append(self.current_review)

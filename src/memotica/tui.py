@@ -15,6 +15,7 @@ from memotica.messages import (
     EditDeck,
     EditFlashcard,
     SelectDeck,
+    UpdateReview,
 )
 from memotica.modals import HelpModal
 from memotica.deck_tree import DeckTree
@@ -150,7 +151,9 @@ class MemoticaApp(App):
 
             self.__reload_flashcards()
 
-        self.push_screen(FlashcardModal(decks=self.decks), callback)
+        self.push_screen(
+            FlashcardModal(decks=self.decks, current_deck=self.selected_deck), callback
+        )
 
     def on_edit_flashcard(self, message: EditFlashcard) -> None:
         flashcard = self.flashcards_repository.get(message.flashcard_id)
@@ -185,16 +188,29 @@ class MemoticaApp(App):
 
         assert self.decks
 
-        self.app.push_screen(FlashcardModal(self.decks, flashcard), callback)
+        self.app.push_screen(
+            FlashcardModal(self.decks, self.selected_deck, flashcard), callback
+        )
 
     def on_delete_flashcard(self, message: DeleteFlashcard) -> None:
         def callback(_: bool) -> None:
             self.flashcards_repository.delete(message.flashcard_id)
-            self.flashcards_table.remove_row(message.flashcard_id)
+            self.__reload_flashcards()
 
         self.app.push_screen(
             ConfirmationModal("Are you sure that you want to delete this flashcard?"),
             callback,
+        )
+
+    def on_update_review(self, message: UpdateReview) -> None:
+        review_id = message.review_id
+        self.reviews_repository.update(
+            review_id,
+            repetitions=message.repetitions,
+            ef=message.ef,
+            interval=message.interval,
+            next_review=message.next_review,
+            last_updated_at=message.last_updated_at,
         )
 
     def action_show_help(self) -> None:
@@ -219,9 +235,7 @@ class MemoticaApp(App):
         self.flashcards_table.add_flashcard()
 
     def action_start_review(self) -> None:
-        return
-
-        if not self.deck_id:
+        if not self.selected_deck:
             self.notify(
                 "You need to select a Deck first!",
                 severity="error",
@@ -229,7 +243,14 @@ class MemoticaApp(App):
             )
             return
 
-        reviews = self.reviews_repository.get_pending(self.deck_id)
+        deck_and_subdecks = self.decks_repository.get_with_subdecks(
+            self.selected_deck.id
+        )
+        reviews = [
+            review
+            for deck in deck_and_subdecks
+            for review in self.reviews_repository.get_pending(deck.id)
+        ]
 
         if not reviews:
             self.notify(
@@ -239,13 +260,7 @@ class MemoticaApp(App):
             )
             return
 
-        self.push_screen(
-            ReviewScreen(
-                session=self.session,
-                deck_id=self.deck_id,
-                name="review",
-            )
-        )
+        self.push_screen(ReviewScreen(reviews=reviews, name="review"))
 
     def __reload_decks(self) -> None:
         self.decks = self.decks_repository.get_all()
