@@ -30,12 +30,12 @@ class ReviewScreen(Screen):
         self.review_queue = deque(reviews)
         self.current_review = self.review_queue.popleft()
 
-        if self.current_review.direction == "ftb":
-            self.front_content = self.current_review.flashcard.front
-            self.back_content = self.current_review.flashcard.back
-        else:
+        if self.current_review.reversed:
             self.front_content = self.current_review.flashcard.back
             self.back_content = self.current_review.flashcard.front
+        else:
+            self.front_content = self.current_review.flashcard.front
+            self.back_content = self.current_review.flashcard.back
 
     def compose(self) -> ComposeResult:
         yield Container(
@@ -106,12 +106,12 @@ class ReviewScreen(Screen):
 
         self.current_review = self.review_queue.popleft()
 
-        if self.current_review.direction == "ftb":
-            self.front_content = self.current_review.flashcard.front
-            self.back_content = self.current_review.flashcard.back
-        else:
+        if self.current_review.reversed:
             self.front_content = self.current_review.flashcard.back
             self.back_content = self.current_review.flashcard.front
+        else:
+            self.front_content = self.current_review.flashcard.front
+            self.back_content = self.current_review.flashcard.back
 
     def update_review(self, q: int = 0) -> None:
         (n, ef, i) = sm2(

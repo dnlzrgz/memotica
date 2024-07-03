@@ -282,7 +282,7 @@ class TestReviewRepository:
 
     def test_get_all(self):
         self.review_repository.add(Review(flashcard=self.flashcard))
-        self.review_repository.add(Review(flashcard=self.flashcard, direction="btf"))
+        self.review_repository.add(Review(flashcard=self.flashcard, reversed=True))
 
         reviews_in_db = self.review_repository.get_all()
         assert len(reviews_in_db) == 2
@@ -303,11 +303,11 @@ class TestReviewRepository:
     def test_update(self):
         original_review = self.review_repository.add(Review(flashcard=self.flashcard))
 
-        self.review_repository.update(original_review.id, direction="btf")
+        self.review_repository.update(original_review.id, reversed=True)
         updated_review = self.review_repository.get(original_review.id)
         assert updated_review is not None
         assert updated_review.id == original_review.id
-        assert updated_review.direction == "btf"
+        assert updated_review.reversed
 
     def test_delete(self):
         review = self.review_repository.add(Review(flashcard=self.flashcard))

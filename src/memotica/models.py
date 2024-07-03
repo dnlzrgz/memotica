@@ -61,7 +61,7 @@ class Review(Base):
     interval: Mapped[int] = mapped_column(Integer, default=1)
     repetitions: Mapped[int] = mapped_column(Integer, default=0)
     next_review: Mapped[date] = mapped_column(Date, default=datetime.now().date())
-    direction: Mapped[str] = mapped_column(String, default="ftb")
+    reversed: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
     last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
@@ -70,4 +70,4 @@ class Review(Base):
     flashcard: Mapped["Flashcard"] = relationship(back_populates="reviews")
 
     def __repr__(self) -> str:
-        return f"Review(id={self.id!r}, ef={self.ef!r}, interval={self.interval!r}, repetitions={self.repetitions!r}, next_review={self.next_review!r}, direction={self.direction!r})"
+        return f"Review(id={self.id!r}, ef={self.ef!r}, interval={self.interval!r}, repetitions={self.repetitions!r}, next_review={self.next_review!r}, reversed={self.reversed!r})"

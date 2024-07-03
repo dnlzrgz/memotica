@@ -146,7 +146,7 @@ class MemoticaApp(App):
 
             if result.reversible:
                 self.reviews_repository.add(
-                    Review(flashcard_id=flashcard.id, direction="btf")
+                    Review(flashcard_id=flashcard.id, reversed=True)
                 )
 
             self.__reload_flashcards()
@@ -174,9 +174,7 @@ class MemoticaApp(App):
 
             self.reviews_repository.add(Review(flashcard=flashcard))
             if result.reversible:
-                self.reviews_repository.add(
-                    Review(flashcard=flashcard, direction="btf")
-                )
+                self.reviews_repository.add(Review(flashcard=flashcard, reversed=True))
 
             self.notify(
                 "Flashcard updated",

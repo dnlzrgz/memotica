@@ -21,31 +21,29 @@ class DeckModal(ModalScreen):
     def __init__(
         self,
         deck: Deck | None = None,
-        decks: list[Deck] | None = None,
+        decks: list[Deck] = [],
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
 
         self.deck = deck
-        if decks:
-            self.decks = decks
-            self.decks_names = [
-                deck.name for deck in decks if self.deck and self.deck.id != deck.id
-            ]
-        else:
-            self.decks = []
-            self.decks_names = []
+        self.decks = decks
+        self.available_decks = (
+            decks
+            if self.deck is None
+            else [deck for deck in self.decks if deck.id != self.deck.id]
+        )
+        self.decks_names = []
+
+        if self.available_decks:
+            self.decks_names = [deck.name for deck in self.available_decks]
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(classes="modal modal--deck"):
             yield Select(
                 allow_blank=True,
-                options=(
-                    (deck.name, deck.id)
-                    for deck in self.decks
-                    if self.deck and deck.id != self.deck.id
-                ),
+                options=((deck.name, deck.id) for deck in self.available_decks),
                 value=(
                     self.deck.parent_id
                     if self.deck and self.deck.parent_id
@@ -103,20 +101,19 @@ class DeckModal(ModalScreen):
             return
 
         selected_parent = self.query_one(Select)
-        if selected_parent.value == Select.BLANK:
-            parent_id = None
-        else:
-            parent_id = selected_parent.value
+        parent = None
+        if selected_parent.value != Select.BLANK:
+            parent = selected_parent.value
 
         deck = Deck(
             name=event.value,
-            parent_id=parent_id,
+            parent_id=parent,
         )
 
         self.dismiss(deck)
 
     def validate_deck_already_exists(self, value) -> bool:
-        if not self.decks_names:
+        if self.deck and value == self.deck.name:
             return True
 
         return True if value not in self.decks_names else False

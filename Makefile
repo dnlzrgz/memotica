@@ -4,8 +4,9 @@ clean:
 	find . -type d -name "__pycache__" -delete
 	@echo "✨ Clean up complete!"
 
-format:
+lint:
 	@echo "🔍 Formatting..."
+	ruff format .
 	ruff check . --fix
 	@echo "✨ Format complete!"
 
@@ -20,3 +21,4 @@ dev:
 console:
 	@echo "🚀 Starting development console..."
 	textual console -v
+

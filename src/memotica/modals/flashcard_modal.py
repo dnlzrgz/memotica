@@ -46,7 +46,9 @@ class FlashcardModal(ModalScreen):
                     value=(
                         self.flashcard.deck_id
                         if self.flashcard
-                        else self.current_deck.id if self.current_deck else Select.BLANK
+                        else self.current_deck.id
+                        if self.current_deck
+                        else Select.BLANK
                     ),
                 ),
                 classes="modal__options",
