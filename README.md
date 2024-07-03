@@ -7,6 +7,7 @@ An easy, fast, and minimalist space repetition application for the terminal
 ## Features
 
 - Markdown support for flashcards.
+- Support for sub-decks for a better organization.
 - Advanced spaced repetition with the SM2 algorithm.
 - Keyboard-First navigation.
 - Easy to add, edit and delete decks and flashcards.
@@ -18,7 +19,6 @@ memotica is nearly ready for use, but I there are some features that I would lik
 - Customizable space repetition algorithm.
 - Import command.
 - Interoperability with Anki.
-- Sub-decks support.
 - Better flashcards management.
 - Basic statistics.
 - Visual indicators.
