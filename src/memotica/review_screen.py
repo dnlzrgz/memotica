@@ -74,14 +74,14 @@ class ReviewScreen(Screen):
         return None
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        answer = self.query(".review__screen--answer")
-        question = self.query(".review__screen--question")
+        self.answer = self.query(".review__screen--answer")
+        self.question = self.query(".review__screen--question")
 
         button_label = f"{event.button.label}"
 
         if button_label == "Show":
-            answer.remove_class("hide")
-            question.add_class("hide")
+            self.answer.remove_class("hide")
+            self.question.add_class("hide")
         else:
             if button_label == "Easy":
                 self.update_review(5)
@@ -91,8 +91,8 @@ class ReviewScreen(Screen):
                 self.update_review()
 
             self.load_next_review()
-            answer.add_class("hide")
-            question.remove_class("hide")
+            self.answer.add_class("hide")
+            self.question.remove_class("hide")
 
     def load_next_review(self) -> None:
         if not self.review_queue:

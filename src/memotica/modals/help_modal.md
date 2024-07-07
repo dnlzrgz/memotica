@@ -14,6 +14,7 @@
 - `ctrl+d`: Toggle dark mode.
 - `ctrl+n`: Open modal to add a new deck.
 - `ctrl+a`: Open modal to add a new flashcard.
+- `ctrl+r`: Reset all the reviews of the selected deck.
 
 ### Decks
 

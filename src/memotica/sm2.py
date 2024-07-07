@@ -24,6 +24,6 @@ def sm2(n: int, ef: float, i: int, q: int) -> tuple[int, float, int]:
         i = 1
 
     ef += 0.1 - (5 - q) * (0.08 + (5 - q) * 0.002)
-    ef = max(ef, round(ef, 2))
+    ef = max(1.3, round(ef, 2))
 
     return (n, ef, i)

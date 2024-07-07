@@ -14,7 +14,7 @@ An easy, fast, and minimalist space repetition application for the terminal
 
 ## WIP
 
-memotica is nearly ready for use, but I there are some features that I would like to implement before reaching version `v1.0.0`:
+memotica is nearly ready for use, but there are some features that I would like to implement before reaching version `v1.0.0`:
 
 - Customizable space repetition algorithm.
 - Import command.

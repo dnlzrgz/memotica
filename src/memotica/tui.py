@@ -44,6 +44,7 @@ class MemoticaApp(App):
         Binding("ctrl+s", "start_review", "Start Review", show=True),
         Binding("ctrl+n", "add_deck", "Add Deck", show=True),
         Binding("ctrl+a", "add_flashcard", "Add Flashcard", show=True),
+        Binding("ctrl+r", "reset_reviews", "Reset Deck's Flashcards", show=False),
     ]
 
     show_sidebar: reactive[bool] = reactive(True)
@@ -259,6 +260,35 @@ class MemoticaApp(App):
             return
 
         self.push_screen(ReviewScreen(reviews=reviews, name="review"))
+
+    def action_reset_reviews(self) -> None:
+        if not self.selected_deck:
+            self.notify(
+                "You need to select a Deck first!",
+                severity="error",
+                timeout=5,
+            )
+            return
+
+        self.flashcards_table.loading = True
+        self.deck_tree.loading = True
+
+        deck_and_subdecks = self.decks_repository.get_with_subdecks(
+            self.selected_deck.id
+        )
+        ids = [deck.id for deck in deck_and_subdecks]
+        flashcards = self.flashcards_repository.get_by_decks(ids)
+
+        for flashcard in flashcards:
+            self.reviews_repository.delete_by_flashcard(flashcard.id)
+            self.reviews_repository.add(Review(flashcard=flashcard))
+            if flashcard.reversible:
+                self.reviews_repository.add(
+                    Review(flashcard_id=flashcard.id, reversed=True)
+                )
+
+        self.flashcards_table.loading = False
+        self.deck_tree.loading = False
 
     def __reload_decks(self) -> None:
         self.decks = self.decks_repository.get_all()
