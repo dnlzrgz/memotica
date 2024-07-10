@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "memotica"
-version = "0.4.1"
+version = "0.4.3"
 description = "An easy, fast, and minimalist space repition application for the terminal."
 authors = ["dnlzrgz <24715931+dnlzrgz@users.noreply.github.com>"]
 license = "MIT"
@@ -12,7 +12,7 @@ documentation = "https://github.com/dnlzrgz/memotica"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-textual = {extras = ["syntax"], version = "^0.66.0"}
+textual = { extras = ["syntax"], version = "^0.66.0" }
 sqlalchemy = "^2.0.30"
 click = "^8.1.7"
 pandas = "^2.2.2"
@@ -28,7 +28,7 @@ textual-dev = "^1.5.1"
 pytest = "^8.2.2"
 
 [tool.poetry.scripts]
-memotica="memotica.cli:cli"
+memotica = "memotica.cli:cli"
 
 [build-system]
 requires = ["poetry-core"]
