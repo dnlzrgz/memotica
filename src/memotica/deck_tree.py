@@ -55,6 +55,10 @@ class DeckTree(Tree):
         root_decks = [deck for deck in self.app.decks if deck.parent_id is None]
 
         def add_deck_to_tree(parent, deck):
+            if not deck.sub_decks:
+                node = parent.add_leaf(deck.name)
+                return
+
             node = parent.add(deck.name)
             for sub_deck in deck.sub_decks:
                 add_deck_to_tree(node, sub_deck)
