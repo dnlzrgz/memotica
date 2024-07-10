@@ -11,16 +11,17 @@ An easy, fast, and minimalist space repetition application for the terminal
 - Advanced spaced repetition with the SM2 algorithm.
 - Keyboard-First navigation.
 - Easy to add, edit and delete decks and flashcards.
+- Export and import your data.
 
 ## WIP
 
 memotica is nearly ready for use, but there are some features that I would like to implement before reaching version `v1.0.0`:
 
-- Customizable space repetition algorithm.
-- Import command.
-- Interoperability with Anki.
-- Better flashcards management.
 - Basic statistics.
+- Better flashcards management.
+- Customizable space repetition algorithm.
+- Interoperability with Anki.
+- Themes.
 - Visual indicators.
 
 ## Motivation
@@ -68,7 +69,7 @@ Once the TUI is displayed, you can:
 - **Add a new deck** by pressing `ctrl+n`.
 - **Add flashcards** with `ctrl+a`.
 
-After you've added flashcards, select a deck in the deck tree and press `ctrl+s` to begin the review process.
+After you've added some flashcards, select a deck in the deck tree and press `ctrl+s` to begin the review process.
 
 ## Help is Welcome
 
