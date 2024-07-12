@@ -8,7 +8,7 @@ from memotica.models import Flashcard
 
 class FlashcardsTable(DataTable):
     def __init__(self, *args, **kwargs):
-        super().__init__(cursor_type="row", *args, **kwargs)
+        super().__init__(cursor_type="row", zebra_stripes=True, *args, **kwargs)
 
     BINDINGS = [
         Binding("backspace", "delete", "Delete", priority=True),
@@ -20,12 +20,6 @@ class FlashcardsTable(DataTable):
     def on_mount(self) -> None:
         self.add_columns("Front", "Back", "Reversible", "Deck")
         self.border_title = "Flashcards"
-
-    def on_focus(self) -> None:
-        self.add_class("focused")
-
-    def on_blur(self) -> None:
-        self.remove_class("focused")
 
     def add_flashcard(self):
         self.post_message(AddFlashcard())

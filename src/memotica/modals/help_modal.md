@@ -18,10 +18,13 @@
 
 ### Decks
 
+- `space`: Expands/collapse a deck with sub-decks.
+- `enter`: Select deck and load its flashcards (including sub-decks)
 - `backspace`: Delete the selected deck.
 - `ctrl+e`: Edit the selected deck.
 
 ### Flashcards
 
+- `enter`: Select a flashcard.
 - `backspace`: Delete the selected flashcard.
 - `ctrl+e`: Edit the selected flashcard.

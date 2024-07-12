@@ -86,6 +86,7 @@ class MemoticaApp(App):
             deck = self.decks_repository.get_by_name(message.deck_name)
             self.selected_deck = deck
             self.__reload_flashcards()
+            self.flashcards_table.focus()
 
     def on_edit_deck(self, _: EditDeck) -> None:
         if not self.selected_deck:

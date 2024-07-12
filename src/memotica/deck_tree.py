@@ -25,12 +25,6 @@ class DeckTree(Tree):
         else:
             self.post_message(SelectDeck(node_label))
 
-    def on_focus(self) -> None:
-        self.add_class("focused")
-
-    def on_blur(self) -> None:
-        self.remove_class("focused")
-
     def add_deck(self) -> None:
         self.post_message(AddDeck())
 

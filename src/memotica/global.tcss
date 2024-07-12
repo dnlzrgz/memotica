@@ -1,7 +1,59 @@
 Screen {
-  layout: horizontal;
+  background: $panel;
   height: auto;
+  layout: horizontal;
   width: auto;
+}
+
+DeckTree {
+  padding-right: 3;
+  padding: 1;
+  width: 30;
+
+  & > .tree--guides {
+    color: $text;
+  }
+
+  & > .tree--guides-selected {
+    color: $secondary;
+  }
+}
+
+FlashcardsTable {
+  width: 1fr;
+
+  & > .datatable--header {
+    text-style: bold;
+    background: $panel;
+    color: $secondary;
+  }
+  
+  & > .datatable--hover {
+    color: $text;
+  }
+
+  & > .datatable--cursor {
+    text-style: bold;
+  }
+
+  & > .datatable--even-row {
+    background: $boost;
+  }
+}
+
+DeckTree,
+FlashcardsTable {
+  background: $panel;
+  border-title-align: left;
+  border: round $secondary-darken-3;
+  height: 100%;
+  opacity: 80%;
+  scrollbar-color: $secondary;
+
+  &:focus {
+    border: round $secondary;
+    opacity: 100%;
+  }
 }
 
 DeckModal,
@@ -12,11 +64,12 @@ ConfirmationModal {
 }
 
 .modal {
-  background: $surface;
-  border: solid $secondary;
+  background: $background;
+  border: round $secondary;
   height: auto;
   max-height: 30;
   max-width: 90;
+  scrollbar-color: $secondary;
   width: auto;
 }
 
@@ -105,27 +158,6 @@ ConfirmationModal {
   align: center middle
 }
 
-DeckTree {
-  width: 32;
-  padding: 1;
-  padding-right: 3;
-}
-
-DeckTree,
-FlashcardsTable {
-  border-title-align: left;
-  border: solid $secondary-darken-3;
-  height: 100%;
-}
-
-.focused {
-  border: solid $secondary;
-}
-
-FlashcardsTable {
-  width: 1fr;
-}
-
 .review__screen {
   align: center middle;
 }
@@ -133,7 +165,7 @@ FlashcardsTable {
 .review__screen__question,
 .review__screen__front,
 .review__screen__back {
-  border: solid $secondary;
+  border: round $secondary;
   padding: 1;
 }
 
