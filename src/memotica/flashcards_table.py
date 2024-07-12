@@ -1,4 +1,5 @@
 from textwrap import shorten
+from rich.text import Text
 from textual.binding import Binding
 from textual.widgets import DataTable
 from memotica.messages import AddFlashcard, DeleteFlashcard, EditFlashcard
@@ -51,7 +52,11 @@ class FlashcardsTable(DataTable):
             self.add_row(
                 shorten(flashcard.front, width=40, placeholder="..."),
                 shorten(flashcard.back, width=40, placeholder="..."),
-                flashcard.reversible,
+                Text(
+                    str("✔" if flashcard.reversible else "✗"),
+                    style="bold",
+                    justify="center",
+                ),
                 flashcard.deck.name,
                 key=f"{flashcard.id}",
             )
