@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "memotica"
-version = "0.4.7"
+version = "0.4.8"
 description = "An easy, fast, and minimalist space repition application for the terminal."
 authors = ["dnlzrgz <24715931+dnlzrgz@users.noreply.github.com>"]
 license = "MIT"

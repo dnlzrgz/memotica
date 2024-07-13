@@ -271,25 +271,31 @@ class MemoticaApp(App):
             )
             return
 
-        self.flashcards_table.loading = True
-        self.deck_tree.loading = True
+        def callback(_: bool) -> None:
+            assert self.selected_deck
 
-        deck_and_subdecks = self.decks_repository.get_with_subdecks(
-            self.selected_deck.id
+            deck_and_subdecks = self.decks_repository.get_with_subdecks(
+                self.selected_deck.id
+            )
+            ids = [deck.id for deck in deck_and_subdecks]
+            flashcards = self.flashcards_repository.get_by_decks(ids)
+
+            for flashcard in flashcards:
+                self.reviews_repository.delete_by_flashcard(flashcard.id)
+                self.reviews_repository.add(Review(flashcard=flashcard))
+                if flashcard.reversible:
+                    self.reviews_repository.add(
+                        Review(flashcard_id=flashcard.id, reversed=True)
+                    )
+
+            self.__reload()
+
+        self.app.push_screen(
+            ConfirmationModal(
+                f"Are you sure you want to reset your review information for '{self.selected_deck.name}' and its sub-decks (if any)?"
+            ),
+            callback,
         )
-        ids = [deck.id for deck in deck_and_subdecks]
-        flashcards = self.flashcards_repository.get_by_decks(ids)
-
-        for flashcard in flashcards:
-            self.reviews_repository.delete_by_flashcard(flashcard.id)
-            self.reviews_repository.add(Review(flashcard=flashcard))
-            if flashcard.reversible:
-                self.reviews_repository.add(
-                    Review(flashcard_id=flashcard.id, reversed=True)
-                )
-
-        self.flashcards_table.loading = False
-        self.deck_tree.loading = False
 
     def __reload_decks(self) -> None:
         self.decks = self.decks_repository.get_all()
