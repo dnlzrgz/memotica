@@ -1,5 +1,5 @@
 Screen {
-  background: $panel;
+  background: $background;
   height: auto;
   layout: horizontal;
   width: auto;
@@ -24,7 +24,7 @@ FlashcardsTable {
 
   & > .datatable--header {
     text-style: bold;
-    background: $panel;
+    background: $background;
     color: $secondary;
   }
   
@@ -43,12 +43,12 @@ FlashcardsTable {
 
 DeckTree,
 FlashcardsTable {
-  background: $panel;
+  background: $background;
   border-title-align: left;
   border: round $secondary-darken-3;
   height: 100%;
   opacity: 80%;
-  scrollbar-color: $secondary;
+  scrollbar-color: $secondary-darken-1;
 
   &:focus {
     border: round $secondary;
