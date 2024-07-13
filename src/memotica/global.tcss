@@ -23,9 +23,9 @@ FlashcardsTable {
   width: 1fr;
 
   & > .datatable--header {
-    text-style: bold;
     background: $background;
     color: $secondary;
+    text-style: bold;
   }
   
   & > .datatable--hover {
@@ -61,6 +61,7 @@ FlashcardModal,
 HelpModal,
 ConfirmationModal {
   align: center middle;
+  background: $panel 70%;
 }
 
 .modal {
@@ -81,16 +82,16 @@ ConfirmationModal {
 .modal--confirm {
   height: 12;
   width: 60;
+
+  & > Static {
+    padding: 1;
+  }
 }
 
 .modal--flashcard {
   layout: grid;
   grid-columns: 1fr;
   grid-rows: auto 1fr auto;
-}
-
-.modal--confirm Static {
-  padding: 1;
 }
 
 .modal--help {
@@ -101,15 +102,16 @@ ConfirmationModal {
 }
 
 .modal__reversible {
-  layout: grid;
   grid-columns: auto auto;
-  grid-size: 2 1;
   grid-gutter: 1;
-}
+  grid-size: 2 1;
+  layout: grid;
+  width: auto;
 
-.modal__reversible Static {
-  content-align: center middle;
-  height: 3;
+  & > Static {
+    content-align: center middle;
+    height: 3;
+  }
 }
 
 .modal__options {
@@ -128,10 +130,6 @@ ConfirmationModal {
   width: 100%;
 }
 
-.modal__reversible {
-  width: auto;
-}
-
 .modal__options Select {
   width: 1fr;
 }
@@ -147,11 +145,10 @@ ConfirmationModal {
 .modal__front,
 .modal__back {
   margin-bottom: 1;
-}
 
-.modal__front Static,
-.modal__back Static {
-  padding-left: 1;
+  & > Static {
+    padding-left: 1;
+  }
 }
 
 .modal__buttons {

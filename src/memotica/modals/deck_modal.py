@@ -67,7 +67,6 @@ class DeckModal(ModalScreen):
                     ),
                 ],
                 validate_on=["submitted"],
-                classes="input-field",
             ).focus()
 
     def action_quit(self) -> None:

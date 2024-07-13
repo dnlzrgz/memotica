@@ -51,16 +51,18 @@ pipx install memotica
 
 ## Usage
 
+### TUI
+
 Once memotica is installed, you should have the `memotica` command available. To start the TUI simply run:
 
 ```bash
 memotica
 ```
 
-Or, if you want to see the help message and other available commands, run:
+Or
 
 ```bash
-memotica --help
+memotica run
 ```
 
 Once the TUI is displayed, you can:
@@ -70,6 +72,20 @@ Once the TUI is displayed, you can:
 - **Add flashcards** with `ctrl+a`.
 
 After you've added some flashcards, select a deck in the deck tree and press `ctrl+s` to begin the review process.
+
+### Other commands
+
+memotica provides commands to export and import your flashcards, decks and review information in the form of CSV files. To see all the available options run:
+
+```bash
+memotica export --help
+```
+
+And
+
+```bash
+memotica import --help
+```
 
 ## Help is Welcome
 
