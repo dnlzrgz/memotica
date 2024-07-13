@@ -88,10 +88,10 @@ def import_flashcards(ctx, file):
         reviews_repository = ReviewRepository(session)
 
         df = pd.read_csv(file)
-        decks = {}
-        for deck_name in df["deck"].unique():
-            deck = decks_repository.add(Deck(name=deck_name))
-            decks[deck_name] = deck.id
+        decks = {
+            deck_name: decks_repository.add(Deck(name=deck_name))
+            for deck_name in df["deck"].unique()
+        }
 
         for _, row in df.iterrows():
             flashcard = flashcards_repository.add(
@@ -99,13 +99,22 @@ def import_flashcards(ctx, file):
                     front=row["front"],
                     back=row["back"],
                     reversible=row["reversible"],
-                    deck_id=decks[row["deck"]],
+                    deck=decks[row["deck"]],
                 )
             )
 
             reviews_repository.add(Review(flashcard=flashcard))
             if flashcard.reversible:
-                reviews_repository.add(Review(flashcard=flashcard, reversed=True))
+                reviews_repository.add(
+                    Review(
+                        flashcard=flashcard,
+                        reversed=True,
+                    )
+                )
+
+            session.commit()
+
+        click.echo(f"Flashcards imported successfully from '{file}'!")
 
 
 import_group.add_command(import_all)
