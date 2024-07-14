@@ -28,3 +28,10 @@
 - `enter`: Select a flashcard.
 - `backspace`: Delete the selected flashcard.
 - `ctrl+e`: Edit the selected flashcard.
+
+### Review
+
+- `enter`/`space`: Show the answer.
+- `1`: Marks question as Wrong.
+- `2`: Marks question as Good.
+- `3`: Marks question as Easy.

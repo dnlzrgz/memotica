@@ -1,4 +1,6 @@
 from collections import deque
+from enum import Enum, auto
+from textual import events
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
@@ -8,6 +10,12 @@ from textual.widgets import Footer, Markdown, Button
 from memotica.messages import UpdateReview
 from memotica.models import Review
 from memotica.sm2 import sm2
+
+
+class ReviewStatus(Enum):
+    LOADING = auto()
+    SHOW_QUESTION = auto()
+    SHOW_ANSWER = auto()
 
 
 class ReviewScreen(Screen):
@@ -22,79 +30,113 @@ class ReviewScreen(Screen):
         Binding("ctrl+n", "disable_binding", "Nothing", show=False, priority=True),
     ]
 
-    front_content: reactive[str] = reactive("", recompose=True)
-    back_content: reactive[str] = reactive("", recompose=True)
+    review_status: reactive[ReviewStatus] = reactive(ReviewStatus.LOADING)
 
     def __init__(self, reviews: list[Review], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.review_queue = deque(reviews)
-        self.current_review = self.review_queue.popleft()
-
-        if self.current_review.reversed:
-            self.front_content = self.current_review.flashcard.back
-            self.back_content = self.current_review.flashcard.front
-        else:
-            self.front_content = self.current_review.flashcard.front
-            self.back_content = self.current_review.flashcard.back
+        self.loading = True
 
     def compose(self) -> ComposeResult:
         yield Container(
             Markdown(
-                self.front_content,
-                classes="review__screen__question",
+                "",
+                classes="review__question",
+            ),
+            Markdown(
+                "",
+                classes="review__answer hide",
             ),
             Container(
                 Button("Show", variant="primary", id="show"),
-                classes="review__screen__controls",
-            ),
-            classes="review__screen review__screen--question",
-        )
-
-        yield Container(
-            Markdown(
-                self.front_content,
-                classes="review__screen__front",
-            ),
-            Markdown(
-                self.back_content,
-                classes="review__screen__back",
+                classes="review__show",
             ),
             Container(
-                Button("Wrong", variant="error"),
-                Button("Good", variant="warning"),
-                Button("Easy", variant="success"),
-                classes="review__screen__controls",
+                Button("Wrong", variant="error", id="wrong"),
+                Button("Good", variant="warning", id="good"),
+                Button("Easy", variant="success", id="easy"),
+                classes="review__assestment hide",
             ),
-            classes="review__screen review__screen--answer hide",
+            classes="review-screen",
         )
 
         yield Footer()
 
-    def action_disable_binding(self) -> None:
-        return None
+    def on_mount(self) -> None:
+        self.question = self.query(".review__question").only_one()
+        self.answer = self.query(".review__answer").only_one()
+        self.show_button = self.query(".review__show").only_one()
+        self.assestment_buttons = self.query(".review__assestment").only_one()
+
+        self.load_next()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.answer = self.query(".review__screen--answer")
-        self.question = self.query(".review__screen--question")
-
-        button_label = f"{event.button.label}"
-
-        if button_label == "Show":
-            self.answer.remove_class("hide")
-            self.question.add_class("hide")
+        button_id = event.button.id
+        if button_id == "show":
+            self.review_status = ReviewStatus.SHOW_ANSWER
         else:
-            if button_label == "Easy":
+            if button_id == "easy":
                 self.update_review(5)
-            elif button_label == "Good":
+            elif button_id == "good":
                 self.update_review(3)
             else:
                 self.update_review()
 
-            self.load_next_review()
-            self.answer.add_class("hide")
-            self.question.remove_class("hide")
+            self.load_next()
 
-    def load_next_review(self) -> None:
+    def on_key(self, event: events.Key) -> None:
+        key = event.key
+        if (
+            key == "space" or key == "enter"
+        ) and self.review_status == ReviewStatus.SHOW_QUESTION:
+            self.review_status = ReviewStatus.SHOW_ANSWER
+
+        if key in ["1", "2", "3"] and self.review_status == ReviewStatus.SHOW_ANSWER:
+            if key == "1":
+                self.update_review()
+            elif key == "2":
+                self.update_review(3)
+            elif key == "3":
+                self.update_review(5)
+
+            self.load_next()
+
+    def action_disable_binding(self) -> None:
+        return None
+
+    def update_review(self, q: int = 0) -> None:
+        (n, ef, i) = sm2(
+            self.current_question.repetitions,
+            self.current_question.ef,
+            self.current_question.interval,
+            q,
+        )
+
+        self.post_message(UpdateReview(self.current_question.id, n, ef, i))
+
+        if q < 3:
+            self.current_question.repetitions = n
+            self.current_question.ef = ef
+            self.current_question.interval = i
+
+            self.review_queue.append(self.current_question)
+
+    def watch_review_status(self, _: ReviewStatus, new_status: ReviewStatus) -> None:
+        if new_status == ReviewStatus.LOADING:
+            self.loading = True
+        else:
+            self.loading = False
+
+            if new_status == ReviewStatus.SHOW_QUESTION:
+                self.show_button.remove_class("hide")
+                self.answer.add_class("hide")
+                self.assestment_buttons.add_class("hide")
+            else:
+                self.show_button.add_class("hide")
+                self.answer.remove_class("hide")
+                self.assestment_buttons.remove_class("hide")
+
+    def load_next(self) -> None:
         if not self.review_queue:
             self.notify(
                 "There are no more cards to review. Well done!",
@@ -104,28 +146,14 @@ class ReviewScreen(Screen):
             self.app.pop_screen()
             return
 
-        self.current_review = self.review_queue.popleft()
+        self.review_status = ReviewStatus.LOADING
 
-        if self.current_review.reversed:
-            self.front_content = self.current_review.flashcard.back
-            self.back_content = self.current_review.flashcard.front
+        self.current_question = self.review_queue.popleft()
+        if self.current_question.reversed:
+            self.question.update(self.current_question.flashcard.back)
+            self.answer.update(self.current_question.flashcard.front)
         else:
-            self.front_content = self.current_review.flashcard.front
-            self.back_content = self.current_review.flashcard.back
+            self.question.update(self.current_question.flashcard.front)
+            self.answer.update(self.current_question.flashcard.back)
 
-    def update_review(self, q: int = 0) -> None:
-        (n, ef, i) = sm2(
-            self.current_review.repetitions,
-            self.current_review.ef,
-            self.current_review.interval,
-            q,
-        )
-
-        self.post_message(UpdateReview(self.current_review.id, n, ef, i))
-
-        if q < 3:
-            self.current_review.repetitions = n
-            self.current_review.ef = ef
-            self.current_review.interval = i
-
-            self.review_queue.append(self.current_review)
+        self.review_status = ReviewStatus.SHOW_QUESTION

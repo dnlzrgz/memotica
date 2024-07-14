@@ -64,6 +64,23 @@ ConfirmationModal {
   background: $panel 70%;
 }
 
+.review-screen {
+  align: center middle;
+
+  & > .review__question,
+  & > .review__answer {
+    border: round $secondary;
+    padding: 1;
+    width: 100%;
+  }
+
+  & > .review__show,
+  & > .review__assestment {
+    align: center middle;
+    layout: horizontal;
+  }
+}
+
 .modal {
   background: $background;
   border: round $secondary;
@@ -153,22 +170,6 @@ ConfirmationModal {
 
 .modal__buttons {
   align: center middle
-}
-
-.review__screen {
-  align: center middle;
-}
-
-.review__screen__question,
-.review__screen__front,
-.review__screen__back {
-  border: round $secondary;
-  padding: 1;
-}
-
-.review__screen__controls {
-  layout: horizontal;
-  align: center middle;
 }
 
 .hide {

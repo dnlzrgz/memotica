@@ -73,6 +73,8 @@ Once the TUI is displayed, you can:
 
 After you've added some flashcards, select a deck in the deck tree and press `ctrl+s` to begin the review process.
 
+> In the review screen you can use `space`/`enter` to show the answer and `1`, `2`, `3` to mark the question as `Bad`, `Good` or `Easy`.
+
 ### Other commands
 
 memotica provides commands to export and import your flashcards, decks and review information in the form of CSV files. To see all the available options run:
