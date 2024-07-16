@@ -32,6 +32,6 @@
 ### Review
 
 - `enter`/`space`: Show the answer.
-- `1`: Marks question as Wrong.
-- `2`: Marks question as Good.
-- `3`: Marks question as Easy.
+- `1`: Mark question as Wrong.
+- `2`: Mark question as Good.
+- `3`: Mark question as Easy.
