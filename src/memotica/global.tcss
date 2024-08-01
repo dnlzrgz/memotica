@@ -6,6 +6,7 @@ Screen {
 }
 
 DeckTree {
+  height: 100%;
   padding-right: 3;
   padding: 1;
   width: 30;
@@ -42,11 +43,11 @@ FlashcardsTable {
 }
 
 DeckTree,
-FlashcardsTable {
+FlashcardsTable,
+StatisticsDisplay {
   background: $background;
   border-title-align: left;
   border: round $secondary-darken-3;
-  height: 100%;
   opacity: 80%;
   scrollbar-color: $secondary-darken-1;
   scrollbar-color-active: $secondary;

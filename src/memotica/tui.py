@@ -27,7 +27,7 @@ from memotica.modals import DeckModal, ConfirmationModal
 from memotica.review_screen import ReviewScreen
 
 
-class MemoticaApp(App):
+class Memotica(App):
     """
     An Anki-like application for the terminal.
     """
@@ -324,5 +324,5 @@ if __name__ == "__main__":
     init_db(engine)
 
     with Session(engine) as session:
-        app = MemoticaApp(session)
+        app = Memotica(session)
         app.run()

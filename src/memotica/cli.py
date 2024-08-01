@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from memotica.config import Config
 from memotica.db import init_db
-from memotica.tui import MemoticaApp
+from memotica.tui import Memotica
 from memotica.commands.import_command import import_group
 from memotica.commands.export_command import export_group
 
@@ -36,7 +36,7 @@ def run(ctx):
     """
     engine = ctx.obj["engine"]
     with Session(engine) as session:
-        app = MemoticaApp(session)
+        app = Memotica(session)
         app.run()
 
 

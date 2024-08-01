@@ -1,33 +1,6 @@
 from datetime import datetime, timedelta
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from memotica.models import Base, Deck, Flashcard, Review
-from memotica.repositories import DeckRepository, FlashcardRepository, ReviewRepository
-
-
-@pytest.fixture(scope="function")
-def session():
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-
-    with Session(engine) as session:
-        yield session
-
-
-@pytest.fixture
-def deck_repository(session):
-    return DeckRepository(session)
-
-
-@pytest.fixture
-def flashcard_repository(session):
-    return FlashcardRepository(session)
-
-
-@pytest.fixture
-def review_repository(session):
-    return ReviewRepository(session)
+from memotica.models import Deck, Flashcard, Review
 
 
 class TestDeckRepository:
@@ -314,5 +287,13 @@ class TestReviewRepository:
         assert review is not None
 
         self.review_repository.delete(review.id)
+        deleted_review = self.review_repository.get(review.id)
+        assert deleted_review is None
+
+    def test_delete_by_flashcard(self):
+        review = self.review_repository.add(Review(flashcard=self.flashcard))
+        assert review is not None
+
+        self.review_repository.delete_by_flashcard(self.flashcard.id)
         deleted_review = self.review_repository.get(review.id)
         assert deleted_review is None

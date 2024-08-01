@@ -20,11 +20,9 @@ class ReviewStatus(Enum):
 
 class ReviewScreen(Screen):
     BINDINGS = [
-        Binding(
-            "ctrl+q", "app.pop_screen", "Exit Review Session", show=True, priority=True
-        ),
-        Binding("escape", "app.pop_screen", "Stop Review", show=False, priority=True),
-        Binding("ctrl+s", "app.pop_screen", "Stop Review", show=False, priority=True),
+        Binding("ctrl+q", "close", "Exit Review Session", show=True, priority=True),
+        Binding("escape", "close", "Stop Review", show=False, priority=True),
+        Binding("ctrl+s", "disable_binding", "Nothing", show=False, priority=True),
         Binding("f5", "disable_binding", "Nothing", show=False, priority=True),
         Binding("ctrl+a", "disable_binding", "Nothing", show=False, priority=True),
         Binding("ctrl+n", "disable_binding", "Nothing", show=False, priority=True),
@@ -100,6 +98,9 @@ class ReviewScreen(Screen):
                 self.update_review(5)
 
             self.load_next()
+
+    def action_close(self) -> None:
+        self.app.pop_screen()
 
     def action_disable_binding(self) -> None:
         return None
