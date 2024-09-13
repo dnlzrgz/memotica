@@ -1,35 +1,29 @@
-[tool.poetry]
+[project]
 name = "memotica"
-version = "0.5.1"
-description = "An easy, fast, and minimalist space repition application for the terminal."
-authors = ["dnlzrgz <24715931+dnlzrgz@users.noreply.github.com>"]
+version = "0.5.3"
+description = "An easy and simple space repition application for the terminal."
 license = "MIT"
 readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "textual>=0.79.1",
+  "sqlalchemy>=2.0.34",
+  "click>=8.1.7",
+  "pandas>=2.2.2",
+]
 
-homepage = "https://github.com/dnlzrgz/memotica"
-repository = "https://github.com/dnlzrgz/memotica"
-documentation = "https://github.com/dnlzrgz/memotica"
-
-[tool.poetry.dependencies]
-python = "^3.12"
-textual = { extras = ["syntax"], version = "^0.66.0" }
-sqlalchemy = "^2.0.30"
-click = "^8.1.7"
-pandas = "^2.2.2"
-
-[tool.poetry.group.dev.dependencies]
-commitizen = "^3.27.0"
-ruff = "^0.4.8"
-textual-dev = "^1.5.1"
-
-
-[tool.poetry.group.tests.dependencies]
-pytest = "^8.2.2"
-pytest-asyncio = "^0.23.8"
-
-[tool.poetry.scripts]
+[project.scripts]
 memotica = "memotica.cli:cli"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+  "commitizen>=3.29.0",
+  "ruff>=0.6.4",
+  "textual-dev>=1.6.1",
+  "pytest>=8.3.3",
+  "pytest-asyncio>=0.24.0",
+]
