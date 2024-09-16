@@ -5,7 +5,7 @@ from textual.containers import Container, VerticalScroll
 from textual.widgets import Button, Static
 
 
-class ConfirmationModal(ModalScreen):
+class ConfirmationModal(ModalScreen[bool]):
     """
     A modal screen that handles actions that require a confirmation.
     """
@@ -30,7 +30,7 @@ class ConfirmationModal(ModalScreen):
             )
 
     def action_quit(self) -> None:
-        self.dismiss()
+        self.dismiss(False)
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")
@@ -41,4 +41,4 @@ class ConfirmationModal(ModalScreen):
         if f"{event.button.label}" == "Delete":
             self.dismiss(True)
         else:
-            self.dismiss()
+            self.dismiss(False)

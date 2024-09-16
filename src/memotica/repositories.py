@@ -1,7 +1,8 @@
 from typing import TypeVar, Generic, Type, Union
-from datetime import datetime
+from datetime import datetime, timezone
+from functools import lru_cache
 from sqlalchemy.orm import Session, aliased
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from memotica.models import Deck, Flashcard, Review
 
 T = TypeVar("T", bound=Union[Deck, Flashcard, Review])
@@ -130,3 +131,60 @@ class ReviewRepository(Repository[Review]):
         if reviews:
             for review in reviews:
                 self.delete(review.id)
+
+
+class StatisticsRepository:
+    def __init__(self, session: Session) -> None:
+        self.session = session
+
+    @lru_cache
+    def count_flashcards(self, deck_id: int | None = None) -> int:
+        stmt = select(func.count()).select_from(Flashcard)
+        if deck_id:
+            stmt = stmt.where(Flashcard.deck_id == deck_id)
+
+        count = self.session.execute(stmt).scalar()
+        return count if count else 0
+
+    @lru_cache
+    def count_reviews(self, deck_id: int | None = None) -> int:
+        stmt = select(func.count()).select_from(Review)
+        if deck_id:
+            stmt = stmt.join(Flashcard).where(Flashcard.deck_id == deck_id)
+
+        count = self.session.execute(stmt).scalar()
+        return count if count else 0
+
+    @lru_cache
+    def count_pending_reviews(self, deck_id: int | None = None) -> int:
+        stmt = select(func.count()).select_from(Review)
+        if deck_id:
+            stmt = stmt.join(Flashcard).where(Flashcard.deck_id == deck_id)
+
+        stmt = stmt.where(Review.next_date <= datetime.now(timezone.utc).date())
+
+        count = self.session.execute(stmt).scalar()
+        return count if count else 0
+
+    @lru_cache
+    def count_reviewed_reviews(self, deck_id: int | None = None) -> int:
+        stmt = select(func.count()).select_from(Review)
+        if deck_id:
+            stmt = stmt.join(Flashcard).where(Flashcard.deck_id == deck_id)
+
+        stmt = stmt.where(Review.next_date > datetime.now(timezone.utc).date())
+
+        count = self.session.execute(stmt).scalar()
+        return count if count else 0
+
+    @lru_cache
+    def calc_avg_review_score(self, deck_id: int | None = None) -> float:
+        stmt = select(func.avg(Review.ef)).select_from(Review)
+        if deck_id:
+            stmt = stmt.join(Flashcard).where(Flashcard.deck_id == deck_id)
+
+        avg_score = self.session.execute(stmt).scalar()
+        return avg_score if avg_score else 0
+
+    def calc_learning_rate(self, deck_id: int | None = None) -> float:
+        return 0

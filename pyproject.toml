@@ -1,6 +1,6 @@
 [project]
 name = "memotica"
-version = "0.5.3"
+version = "0.5.4"
 description = "An easy and simple space repition application for the terminal."
 license = "MIT"
 readme = "README.md"
@@ -10,6 +10,7 @@ dependencies = [
   "sqlalchemy>=2.0.34",
   "click>=8.1.7",
   "pandas>=2.2.2",
+  "pydantic-settings>=2.5.2",
 ]
 
 [project.scripts]

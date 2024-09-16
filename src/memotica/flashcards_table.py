@@ -36,6 +36,7 @@ class FlashcardsTable(DataTable):
 
     def reload(self, flashcards: list[Flashcard] | None = None) -> None:
         self.loading = True
+        self.border_subtitle = None
         self.clear()
 
         if not flashcards:
@@ -55,4 +56,5 @@ class FlashcardsTable(DataTable):
                 key=f"{flashcard.id}",
             )
 
+        self.border_subtitle = f"{len(flashcards)}"
         self.loading = False

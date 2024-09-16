@@ -1,10 +1,12 @@
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import Footer, Header
+from memotica import messages
 from memotica.config import Config
 from memotica.db import init_db
 from memotica.messages import (
@@ -74,31 +76,36 @@ class Memotica(App):
         self.session.flush()
         self.app.exit()
 
-    def on_add_deck(self, _: AddDeck) -> None:
-        def callback(result: Deck) -> None:
-            self.decks_repository.add(result)
-            self.__reload()
+    @on(messages.AddDeck)
+    def add_new_deck(self) -> None:
+        def add_deck(response: Deck | None) -> None:
+            if response:
+                self.decks_repository.add(response)
+                self.__reload()
 
-        self.push_screen(DeckModal(decks=self.decks), callback)
+        self.push_screen(DeckModal(decks=self.decks), add_deck)
 
-    def on_select_deck(self, message: SelectDeck) -> None:
+    @on(messages.SelectDeck)
+    def load_deck_flashcards(self, message: SelectDeck) -> None:
         if message.deck_name:
+            # TODO: Check if deck exists.
             deck = self.decks_repository.get_by_name(message.deck_name)
             self.selected_deck = deck
             self.__reload_flashcards()
             self.flashcards_table.focus()
 
-    def on_edit_deck(self, _: EditDeck) -> None:
+    @on(messages.EditDeck)
+    def update_deck(self) -> None:
         if not self.selected_deck:
             return
 
-        def callback(result: Deck) -> None:
+        def callback(response: Deck | None) -> None:
             assert self.selected_deck
 
             self.decks_repository.update(
                 self.selected_deck.id,
-                name=result.name,
-                parent_id=result.parent_id,
+                name=response.name,
+                parent_id=response.parent_id,
             )
 
             self.notify(
@@ -112,21 +119,21 @@ class Memotica(App):
         assert self.decks
 
         self.push_screen(
-            DeckModal(self.selected_deck, self.decks),
+            DeckModal(decks=self.decks, deck=self.selected_deck),
             callback,
         )
 
-    def on_delete_deck(self, _: DeleteDeck) -> None:
+    @on(messages.DeleteDeck)
+    def delete_deck(self) -> None:
         if not self.selected_deck:
             return
 
-        def callback(_: bool) -> None:
-            assert self.selected_deck
+        def callback(response: bool | None) -> None:
+            if response:
+                self.decks_repository.delete(self.selected_deck.id)
+                self.__reload()
 
-            self.decks_repository.delete(self.selected_deck.id)
-            self.__reload()
-
-        self.app.push_screen(
+        self.push_screen(
             ConfirmationModal(
                 f"Are you sure that you want to delete '{self.selected_deck.name}'? All the flashcards will be deleted to!"
             ),
@@ -142,7 +149,10 @@ class Memotica(App):
             )
             return
 
-        def callback(result: Flashcard) -> None:
+        def callback(result: Flashcard | None) -> None:
+            if not result:
+                return
+
             flashcard = self.flashcards_repository.add(result)
             self.reviews_repository.add(Review(flashcard=flashcard))
 
@@ -162,7 +172,7 @@ class Memotica(App):
         if not flashcard:
             return
 
-        def callback(result: Flashcard) -> None:
+        def callback(result: Flashcard | None) -> None:
             self.flashcards_repository.update(
                 flashcard.id,
                 reversible=result.reversible,
@@ -193,7 +203,7 @@ class Memotica(App):
         )
 
     def on_delete_flashcard(self, message: DeleteFlashcard) -> None:
-        def callback(_: bool) -> None:
+        def callback(_: bool | None) -> None:
             self.flashcards_repository.delete(message.flashcard_id)
             self.__reload_flashcards()
 
@@ -271,7 +281,7 @@ class Memotica(App):
             )
             return
 
-        def callback(_: bool) -> None:
+        def callback(response: bool | None) -> None:
             assert self.selected_deck
 
             deck_and_subdecks = self.decks_repository.get_with_subdecks(

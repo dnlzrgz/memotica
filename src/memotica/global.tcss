@@ -20,6 +20,12 @@ DeckTree {
   }
 }
 
+Grid {
+  grid-columns: 1fr;
+  grid-gutter: 0;
+  grid-rows: 4fr 2fr;
+}
+
 FlashcardsTable {
   width: 1fr;
 
@@ -48,16 +54,29 @@ StatisticsDisplay {
   background: $background;
   border-title-align: left;
   border: round $secondary-darken-3;
+  height: 1fr;
   opacity: 80%;
-  scrollbar-color: $secondary-darken-1;
   scrollbar-color-active: $secondary;
   scrollbar-color-hover: $secondary;
+  scrollbar-color: $secondary-darken-1;
 
   &:focus {
     border: round $secondary;
     opacity: 100%;
   }
 }
+
+StatisticsDisplay {
+  layout: grid;
+  grid-size: 2;
+  grid-columns: 1fr 2fr;
+
+  & > VerticalScroll {
+    padding: 1;
+  }
+}
+
+
 
 DeckModal,
 FlashcardModal,

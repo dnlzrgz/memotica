@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import List
 from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -38,8 +38,12 @@ class Flashcard(Base):
     back: Mapped[str]
     reversible: Mapped[bool] = mapped_column(Boolean(), default=False)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
-    last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
+    last_updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
 
     deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id"), index=True)
     deck: Mapped["Deck"] = relationship(back_populates="flashcards")
@@ -60,11 +64,17 @@ class Review(Base):
     ef: Mapped[float] = mapped_column(Float, default=2.5)
     interval: Mapped[int] = mapped_column(Integer, default=1)
     repetitions: Mapped[int] = mapped_column(Integer, default=0)
-    next_review: Mapped[date] = mapped_column(Date, default=datetime.now().date())
+    next_review: Mapped[date] = mapped_column(
+        Date, default=datetime.now(timezone.utc).date()
+    )
     reversed: Mapped[bool] = mapped_column(Boolean(), default=False)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
-    last_updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
+    last_updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
 
     flashcard_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id"), index=True)
     flashcard: Mapped["Flashcard"] = relationship(back_populates="reviews")

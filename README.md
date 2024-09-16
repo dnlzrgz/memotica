@@ -4,6 +4,8 @@ An easy, fast, and minimalist space repetition application for the terminal
 
 ![Main screen screenshot](./assets/memotica_tui.svg)
 
+> When I started working on memotica, I had a few goals in mind. First, I wanted to become more familiar with textual. Second, I aimed to create an easy-to-use tool to meet my own needs for learning basic vocabulary in German and Japanese. However, over time, I became interested in other projects and began accepting professional opportunities again. As a result, I have been unable to invest as much time in memotica as I initially would have liked. That's why I am now archiving this project.
+
 ## Features
 
 - Markdown support for flashcards.

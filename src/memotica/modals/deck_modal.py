@@ -7,12 +7,11 @@ from textual.widgets import Input, Select
 from memotica.models import Deck
 
 
-class DeckModal(ModalScreen):
+class DeckModal(ModalScreen[Deck]):
     """
     A modal screen to edit an existing deck or add a new one.
     """
 
-    # Bindings to close the modal
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit"),
         Binding("escape", "quit", "Quit"),
@@ -20,15 +19,16 @@ class DeckModal(ModalScreen):
 
     def __init__(
         self,
-        deck: Deck | None = None,
         decks: list[Deck] = [],
+        deck: Deck | None = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
 
-        self.deck = deck
         self.decks = decks
+        self.deck = deck
+
         self.available_decks = (
             decks
             if self.deck is None
@@ -70,11 +70,7 @@ class DeckModal(ModalScreen):
             ).focus()
 
     def action_quit(self) -> None:
-        """
-        Quits the modal.
-        """
-
-        self.dismiss()
+        self.dismiss(None)
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")

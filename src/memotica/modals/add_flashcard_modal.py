@@ -67,7 +67,7 @@ class AddFlashcardModal(ModalScreen):
             )
 
     def action_quit(self) -> None:
-        self.app.pop_screen()
+        self.dismiss(None)
 
     def on_mount(self) -> None:
         modal = self.query_one(".modal")
